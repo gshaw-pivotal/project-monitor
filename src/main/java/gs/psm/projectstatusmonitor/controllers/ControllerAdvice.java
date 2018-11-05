@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,4 +13,8 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = ProjectAlreadyExistsException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     void handleProjectAlreadyExistsException() {}
+
+    @ExceptionHandler(value = ProjectNotFoundException.class)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    void handleProjectnotFoundException() {}
 }

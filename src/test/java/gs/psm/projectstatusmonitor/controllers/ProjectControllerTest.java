@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
 import org.junit.Before;
@@ -128,6 +129,30 @@ public class ProjectControllerTest {
                         "{\"projectCode\":\"code2\",\"projectName\":\"name2\"}" +
                 "]"
         );
+    }
+
+    @Test
+    public void project_GET_whenTheProjectCodeExists_returnsTheProject() throws Exception {
+        String projectCode = "code";
+
+        Project expectedProject = createProject(1);
+
+        when(projectUseCase.getProject(projectCode)).thenReturn(expectedProject);
+
+        MvcResult response = mockMvc
+                .perform(get("/project/" + projectCode))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(response.getResponse().getContentAsString()).isEqualTo("{\"projectCode\":\"code1\",\"projectName\":\"name1\"}");
+    }
+
+    @Test
+    public void project_GET_whenTheProjectCodeDoesNotExist_returnsNotFound() throws Exception {
+        when(projectUseCase.getProject("notFoundCode")).thenThrow(new ProjectNotFoundException());
+
+        mockMvc.perform(get("/project/notFoundCode"))
+                .andExpect(status().isNotFound());
     }
 
     private String buildAddProjectRequestBody(String projectCode) {

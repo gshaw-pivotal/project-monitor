@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.converters.ProjectConverter;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.AddProjectRequest;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
@@ -25,5 +26,14 @@ public class ProjectUseCase {
 
     public List<Project> listProjects() {
         return projectRepository.listProjects();
+    }
+
+    public Project getProject(String projectCode) {
+        Project foundProject = projectRepository.getProject(projectCode);
+        if (foundProject != null) {
+            return foundProject;
+        }
+
+        throw new ProjectNotFoundException();
     }
 }

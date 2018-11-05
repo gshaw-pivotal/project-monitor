@@ -29,4 +29,9 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
     public List<Project> listProjects() {
         return new ArrayList<>(projectRecords.values());
     }
+
+    @Override
+    public Project getProject(String projectCode) {
+        return projectRecords.get(projectCode);
+    }
 }

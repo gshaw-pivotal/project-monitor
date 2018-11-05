@@ -9,4 +9,6 @@ public interface ProjectRepository {
     Project addProject(Project addProject);
 
     List<Project> listProjects();
+
+    Project getProject(String projectCode);
 }

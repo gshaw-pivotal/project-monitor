@@ -2,6 +2,7 @@ package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.converters.ProjectConverter;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.AddProjectRequest;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
@@ -127,6 +128,30 @@ public class ProjectUseCaseTest {
 
         assertThat(returnedProjects.size()).isEqualTo(expectedProjects.size());
         assertThat(returnedProjects.containsAll(expectedProjects));
+    }
+
+    @Test
+    public void getProject_givenAProjectCodeThatExists_returnsThatProject() {
+        String projectCode = "code";
+
+        Project expectedProject = Project.builder()
+                .projectCode(projectCode)
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.getProject(projectCode)).thenReturn(expectedProject);
+
+        Project returnedProject = projectUseCase.getProject(projectCode);
+
+        assertThat(returnedProject.getProjectCode()).isEqualTo(expectedProject.getProjectCode());
+        assertThat(returnedProject.getProjectName()).isEqualTo(expectedProject.getProjectName());
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void getProject_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        when(projectRepository.getProject(any())).thenReturn(null);
+
+        projectUseCase.getProject("codeNotFound");
     }
 
     private Project createProject(int increment) {

@@ -86,6 +86,24 @@ public class InMemoryProjectProjectRepositoryTest {
         assertThat(projectList.containsAll(expectedProjectList));
     }
 
+    @Test
+    public void getProject_givenAProjectCodeThatExists_returnsTheCorrespondingProject() {
+        String projectCode = "code1";
+        addProjectToRepository(1);
+
+        Project returnedProject = repository.getProject(projectCode);
+
+        assertThat(returnedProject.getProjectCode()).isEqualTo(projectCode);
+        assertThat(returnedProject.getProjectName()).isEqualTo("name1");
+    }
+
+    @Test
+    public void getProject_givenAProjectCodeThatDoesNotExist_returnsNull() {
+        Project returnedProject = repository.getProject("notExisting");
+
+        assertThat(returnedProject).isNull();
+    }
+
     private void addProjectToRepository(int increment) {
         Project newProject = Project.builder()
                 .projectCode("code" + increment)
