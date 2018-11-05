@@ -4,7 +4,9 @@ import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InMemoryProjectProjectRepository implements ProjectRepository {
@@ -21,5 +23,10 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
 
         projectRecords.put(addProject.getProjectCode(), addProject);
         return addProject;
+    }
+
+    @Override
+    public List<Project> listProjects() {
+        return new ArrayList<>(projectRecords.values());
     }
 }

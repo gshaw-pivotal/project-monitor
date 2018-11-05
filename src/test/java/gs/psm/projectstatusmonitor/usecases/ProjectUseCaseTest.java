@@ -11,9 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class ProjectUseCaseTest {
 
@@ -88,5 +91,48 @@ public class ProjectUseCaseTest {
         when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
 
         projectUseCase.addProject(request);
+    }
+
+    @Test
+    public void listProjects_callsTheProjectRepository() {
+        when(projectRepository.listProjects()).thenReturn(Collections.emptyList());
+
+        projectUseCase.listProjects();
+
+        verify(projectRepository, times(1)).listProjects();
+    }
+
+    @Test
+    public void listProjects_whenThereAreNoProjects_returnsAnEmptyList() {
+        List<Project> expectedProjects = new ArrayList<>();
+
+        when(projectRepository.listProjects()).thenReturn(expectedProjects);
+
+        List<Project> returnedProjects = projectUseCase.listProjects();
+
+        assertThat(returnedProjects.size()).isEqualTo(expectedProjects.size());
+    }
+
+    @Test
+    public void listProjects_whenThereAreProjects_returnsTheListOfProjects() {
+        List<Project> expectedProjects = new ArrayList<>();
+
+        expectedProjects.add(createProject(0));
+        expectedProjects.add(createProject(1));
+        expectedProjects.add(createProject(2));
+
+        when(projectRepository.listProjects()).thenReturn(expectedProjects);
+
+        List<Project> returnedProjects = projectUseCase.listProjects();
+
+        assertThat(returnedProjects.size()).isEqualTo(expectedProjects.size());
+        assertThat(returnedProjects.containsAll(expectedProjects));
+    }
+
+    private Project createProject(int increment) {
+        return Project.builder()
+                .projectCode("code" + increment)
+                .projectName("name" + increment)
+                .build();
     }
 }

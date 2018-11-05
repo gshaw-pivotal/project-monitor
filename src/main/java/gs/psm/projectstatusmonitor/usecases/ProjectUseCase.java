@@ -5,6 +5,8 @@ import gs.psm.projectstatusmonitor.models.AddProjectRequest;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 
+import java.util.List;
+
 public class ProjectUseCase {
 
     private ProjectRepository projectRepository;
@@ -19,5 +21,9 @@ public class ProjectUseCase {
         Project project = projectConverter.convertRequest(projectRequest);
 
         projectRepository.addProject(project);
+    }
+
+    public List<Project> listProjects() {
+        return projectRepository.listProjects();
     }
 }

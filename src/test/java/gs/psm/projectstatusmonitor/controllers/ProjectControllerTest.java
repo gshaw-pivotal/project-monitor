@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,11 +10,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -87,10 +94,53 @@ public class ProjectControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void list_GET_whenThereAreNoProjects_returnsAnEmptyList() throws Exception {
+        when(projectUseCase.listProjects()).thenReturn(Collections.emptyList());
+
+        MvcResult response = mockMvc
+                .perform(get("/list"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(response.getResponse().getContentAsString()).isEqualTo("[]");
+    }
+
+    @Test
+    public void list_GET_whenThereAreProjects_returnsAListOfTheProjects() throws Exception {
+        List<Project> projectList = new ArrayList<>();
+
+        projectList.add(createProject(0));
+        projectList.add(createProject(1));
+        projectList.add(createProject(2));
+
+        when(projectUseCase.listProjects()).thenReturn(projectList);
+
+        MvcResult response = mockMvc
+                .perform(get("/list"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(response.getResponse().getContentAsString()).isEqualTo(
+                "[" +
+                        "{\"projectCode\":\"code0\",\"projectName\":\"name0\"}," +
+                        "{\"projectCode\":\"code1\",\"projectName\":\"name1\"}," +
+                        "{\"projectCode\":\"code2\",\"projectName\":\"name2\"}" +
+                "]"
+        );
+    }
+
     private String buildAddProjectRequestBody(String projectCode) {
         return "{" +
                 "\"projectCode\": \"" + projectCode + "\"," +
                 "\"projectName\": \"projectName\"" +
                 "}";
+    }
+
+    private Project createProject(int increment) {
+        return Project.builder()
+                .projectCode("code" + increment)
+                .projectName("name" + increment)
+                .build();
     }
 }
