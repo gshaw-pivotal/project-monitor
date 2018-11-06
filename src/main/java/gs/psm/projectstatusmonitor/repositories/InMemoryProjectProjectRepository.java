@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.repositories;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 
@@ -33,5 +34,15 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
     @Override
     public Project getProject(String projectCode) {
         return projectRecords.get(projectCode);
+    }
+
+    @Override
+    public boolean removeProject(String projectCode) {
+        Project deletedProject = projectRecords.remove(projectCode);
+        if (deletedProject != null) {
+            return true;
+        }
+
+        throw new ProjectNotFoundException();
     }
 }

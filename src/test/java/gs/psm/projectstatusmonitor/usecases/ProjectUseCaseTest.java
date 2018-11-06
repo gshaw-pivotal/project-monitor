@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.converters.ProjectConverter;
+import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.AddProjectRequest;
@@ -152,6 +153,33 @@ public class ProjectUseCaseTest {
         when(projectRepository.getProject(any())).thenReturn(null);
 
         projectUseCase.getProject("codeNotFound");
+    }
+
+    @Test
+    public void removeProject_givenAProjectCodeThatExists_callsTheProjectRepository() {
+        String projectCode = "codeToDelete";
+
+        when(projectRepository.removeProject(projectCode)).thenReturn(true);
+
+        projectUseCase.removeProject(projectCode);
+
+        verify(projectRepository, times(1)).removeProject(projectCode);
+    }
+
+    @Test(expected = DeleteProjectException.class)
+    public void removeProject_givenTheRepositoryReturnsFalse_throwsDeleteProjectException() {
+        String projectCode = "codeToDelete";
+
+        when(projectRepository.removeProject(projectCode)).thenReturn(false);
+
+        projectUseCase.removeProject(projectCode);
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void removeProject_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        when(projectRepository.removeProject("codeNotFound")).thenThrow(new ProjectNotFoundException());
+
+        projectUseCase.removeProject("codeNotFound");
     }
 
     private Project createProject(int increment) {

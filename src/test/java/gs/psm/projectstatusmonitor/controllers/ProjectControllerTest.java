@@ -1,5 +1,6 @@
 package gs.psm.projectstatusmonitor.controllers;
 
+import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -21,6 +22,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,6 +155,36 @@ public class ProjectControllerTest {
 
         mockMvc.perform(get("/project/notFoundCode"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void project_DELETE_whenTheProjectCodeExists_returns204() throws Exception {
+        String projectCode = "projectCode";
+
+        doNothing().when(projectUseCase).removeProject(projectCode);
+
+        mockMvc.perform(delete("/project/" + projectCode))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void project_DELETE_whenTheProjectCodeDoesNotExists_returns400() throws Exception {
+        String projectCode = "projectCode";
+
+        doThrow(new ProjectNotFoundException()).when(projectUseCase).removeProject(projectCode);
+
+        mockMvc.perform(delete("/project/" + projectCode))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void project_DELETE_whenTheRemoveOperationFails_returns500() throws Exception {
+        String projectCode = "projectCode";
+
+        doThrow(new DeleteProjectException()).when(projectUseCase).removeProject(projectCode);
+
+        mockMvc.perform(delete("/project/" + projectCode))
+                .andExpect(status().isInternalServerError());
     }
 
     private String buildAddProjectRequestBody(String projectCode) {

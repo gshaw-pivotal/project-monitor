@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.repositories;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,6 +103,23 @@ public class InMemoryProjectProjectRepositoryTest {
         Project returnedProject = repository.getProject("notExisting");
 
         assertThat(returnedProject).isNull();
+    }
+
+    @Test
+    public void removeProject_givenAProjectCodeThatExists_returnsTrue() {
+        String projectCode = "code1";
+        addProjectToRepository(1);
+
+        boolean deleted = repository.removeProject(projectCode);
+
+        assertThat(deleted).isTrue();
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void removeProject_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        addProjectToRepository(1);
+
+        repository.removeProject("codeNotFound");
     }
 
     private void addProjectToRepository(int increment) {

@@ -31,4 +31,10 @@ public class ProjectController {
     public ResponseEntity getProject(@PathVariable String projectCode) {
         return new ResponseEntity(projectUseCase.getProject(projectCode), HttpStatus.OK);
     }
+
+    @DeleteMapping(value = "/project/{projectCode}")
+    public ResponseEntity removeProject(@PathVariable String projectCode) {
+        projectUseCase.removeProject(projectCode);
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
 }

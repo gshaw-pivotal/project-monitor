@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.converters.ProjectConverter;
+import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.AddProjectRequest;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -35,5 +36,11 @@ public class ProjectUseCase {
         }
 
         throw new ProjectNotFoundException();
+    }
+
+    public void removeProject(String projectCodeToDelete) {
+        if (!projectRepository.removeProject(projectCodeToDelete)) {
+            throw new DeleteProjectException();
+        }
     }
 }

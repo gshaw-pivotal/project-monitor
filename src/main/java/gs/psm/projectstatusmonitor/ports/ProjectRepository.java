@@ -11,4 +11,6 @@ public interface ProjectRepository {
     List<Project> listProjects();
 
     Project getProject(String projectCode);
+
+    boolean removeProject(String projectCode);
 }
