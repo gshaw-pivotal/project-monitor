@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.List;
+
 @Builder
 @Data
 @NoArgsConstructor
@@ -17,4 +19,6 @@ public class Project {
     private String projectCode;
     @NotNull
     private String projectName;
+
+    private List<ProjectJobStatus> jobStatusList;
 }

@@ -76,15 +76,37 @@ public class ProjectControllerTest {
     }
 
     @Test
-    public void add_POST_forAProjectThatDoesNotAlreadyExist_returns201AndAnIdForProject() throws Exception {
+    public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsNoJobStatusList_returns201() throws Exception {
         String projectCode = "proCode";
 
         doNothing().when(projectUseCase).addProject(any());
 
         mockMvc.perform(post("/add")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(buildAddProjectRequestBody(projectCode)))
+                .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_returns201() throws Exception {
+        String projectCode = "proCode";
+
+        doNothing().when(projectUseCase).addProject(any());
+
+        mockMvc.perform(post("/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectWithStatusListAsJson(projectCode)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withInvalidStatus_returns400() throws Exception {
+        String projectCode = "proCode";
+
+        mockMvc.perform(post("/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(projectCode)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -93,7 +115,7 @@ public class ProjectControllerTest {
 
         mockMvc.perform(post("/add")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(buildAddProjectRequestBody("proCodeDuplicate")))
+                .content(buildProjectAsJson("proCodeDuplicate")))
                 .andExpect(status().isBadRequest());
     }
 
@@ -126,9 +148,9 @@ public class ProjectControllerTest {
 
         assertThat(response.getResponse().getContentAsString()).isEqualTo(
                 "[" +
-                        "{\"projectCode\":\"code0\",\"projectName\":\"name0\"}," +
-                        "{\"projectCode\":\"code1\",\"projectName\":\"name1\"}," +
-                        "{\"projectCode\":\"code2\",\"projectName\":\"name2\"}" +
+                        "{\"projectCode\":\"code0\",\"projectName\":\"name0\",\"jobStatusList\":null}," +
+                        "{\"projectCode\":\"code1\",\"projectName\":\"name1\",\"jobStatusList\":null}," +
+                        "{\"projectCode\":\"code2\",\"projectName\":\"name2\",\"jobStatusList\":null}" +
                 "]"
         );
     }
@@ -146,7 +168,8 @@ public class ProjectControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        assertThat(response.getResponse().getContentAsString()).isEqualTo("{\"projectCode\":\"code1\",\"projectName\":\"name1\"}");
+        assertThat(response.getResponse().getContentAsString())
+                .isEqualTo("{\"projectCode\":\"code1\",\"projectName\":\"name1\",\"jobStatusList\":null}");
     }
 
     @Test
@@ -187,10 +210,36 @@ public class ProjectControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-    private String buildAddProjectRequestBody(String projectCode) {
+    private String buildProjectAsJson(String projectCode) {
         return "{" +
                 "\"projectCode\": \"" + projectCode + "\"," +
                 "\"projectName\": \"projectName\"" +
+                "}";
+    }
+
+    private String buildProjectWithStatusListAsJson(String projectCode) {
+        return "{" +
+                    "\"projectCode\": \"" + projectCode + "\"," +
+                    "\"projectName\": \"projectName\"," +
+                    "\"jobStatusList\": [" +
+                        "{" +
+                            "\"jobName\": \"a job name\"," +
+                            "\"jobStatus\": \"RUNNING\"" +
+                        "}" +
+                    "]" +
+                "}";
+    }
+
+    private String buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(String projectCode) {
+        return "{" +
+                "\"projectCode\": \"" + projectCode + "\"," +
+                "\"projectName\": \"projectName\"," +
+                "\"jobStatusList\": [" +
+                "{" +
+                "\"jobName\": \"a job name\"," +
+                "\"jobStatus\": \"WRONG\"" +
+                "}" +
+                "]" +
                 "}";
     }
 
@@ -198,6 +247,7 @@ public class ProjectControllerTest {
         return Project.builder()
                 .projectCode("code" + increment)
                 .projectName("name" + increment)
+                .jobStatusList(null)
                 .build();
     }
 }
