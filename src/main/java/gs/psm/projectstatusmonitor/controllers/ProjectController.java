@@ -27,7 +27,7 @@ public class ProjectController {
         return new ResponseEntity(projectUseCase.listProjects(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "project/{projectCode}", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/project/{projectCode}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getProject(@PathVariable String projectCode) {
         return new ResponseEntity(projectUseCase.getProject(projectCode), HttpStatus.OK);
     }
