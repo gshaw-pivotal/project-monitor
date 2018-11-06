@@ -1,7 +1,6 @@
 package gs.psm.projectstatusmonitor.converters;
 
 import gs.psm.projectstatusmonitor.models.AddProjectRequest;
-import gs.psm.projectstatusmonitor.models.AddProjectResponse;
 import gs.psm.projectstatusmonitor.models.Project;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,19 +24,6 @@ public class ProjectConverterTest {
                 .build();
 
         Project converted = converter.convertRequest(addProjectRequest);
-
-        assertThat(converted.getProjectCode()).isEqualTo("projectCode");
-        assertThat(converted.getProjectName()).isEqualTo("projectName");
-    }
-
-    @Test
-    public void convertProjectToAddProjectResponse() {
-        Project project = Project.builder()
-                .projectCode("projectCode")
-                .projectName("projectName")
-                .build();
-
-        AddProjectResponse converted = converter.convertProject(project);
 
         assertThat(converted.getProjectCode()).isEqualTo("projectCode");
         assertThat(converted.getProjectName()).isEqualTo("projectName");
