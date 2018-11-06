@@ -148,11 +148,11 @@ public class ProjectControllerTest {
     }
 
     @Test
-    public void project_GET_whenTheProjectCodeDoesNotExist_returnsNotFound() throws Exception {
+    public void project_GET_whenTheProjectCodeDoesNotExist_returns400() throws Exception {
         when(projectUseCase.getProject("notFoundCode")).thenThrow(new ProjectNotFoundException());
 
         mockMvc.perform(get("/project/notFoundCode"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     private String buildAddProjectRequestBody(String projectCode) {

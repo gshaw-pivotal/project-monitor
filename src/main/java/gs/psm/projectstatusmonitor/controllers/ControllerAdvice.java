@@ -15,6 +15,6 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     void handleProjectAlreadyExistsException() {}
 
     @ExceptionHandler(value = ProjectNotFoundException.class)
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     void handleProjectnotFoundException() {}
 }
