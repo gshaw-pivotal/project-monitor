@@ -1,10 +1,8 @@
 package gs.psm.projectstatusmonitor.usecases;
 
-import gs.psm.projectstatusmonitor.converters.ProjectConverter;
 import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
-import gs.psm.projectstatusmonitor.models.AddProjectRequest;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 import org.junit.Before;
@@ -25,9 +23,6 @@ public class ProjectUseCaseTest {
     @Mock
     private ProjectRepository projectRepository;
 
-    @Mock
-    private ProjectConverter projectConverter;
-
     @InjectMocks
     private ProjectUseCase projectUseCase;
 
@@ -35,64 +30,33 @@ public class ProjectUseCaseTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        projectUseCase = new ProjectUseCase(projectRepository, projectConverter);
-    }
-
-    @Test
-    public void addProject_givenANewProject_callsTheProjectConverter() {
-        AddProjectRequest request = AddProjectRequest.builder()
-                .projectCode("projectCode")
-                .projectName("projectName")
-                .build();
-
-        Project project = Project.builder()
-                .projectCode("projectCode")
-                .projectName("projectName")
-                .build();
-
-        when(projectConverter.convertRequest(request)).thenReturn(project);
-
-        projectUseCase.addProject(request);
-
-        verify(projectConverter, times(1)).convertRequest(request);
+        projectUseCase = new ProjectUseCase(projectRepository);
     }
 
     @Test
     public void addProject_givenANewProject_callsTheProjectRepository() {
-        AddProjectRequest request = AddProjectRequest.builder()
-                .projectCode("projectCode")
-                .projectName("projectName")
-                .build();
-
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
                 .build();
 
-        when(projectConverter.convertRequest(request)).thenReturn(project);
         when(projectRepository.addProject(project)).thenReturn(project);
 
-        projectUseCase.addProject(request);
+        projectUseCase.addProject(project);
 
         verify(projectRepository, times(1)).addProject(project);
     }
 
     @Test(expected = ProjectAlreadyExistsException.class)
     public void addProject_givenADuplicateProject_throwsProjectAlreadyExistsException() {
-        AddProjectRequest request = AddProjectRequest.builder()
-                .projectCode("projectCode")
-                .projectName("projectName")
-                .build();
-
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
                 .build();
 
-        when(projectConverter.convertRequest(request)).thenReturn(project);
         when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
 
-        projectUseCase.addProject(request);
+        projectUseCase.addProject(project);
     }
 
     @Test

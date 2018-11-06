@@ -1,6 +1,6 @@
 package gs.psm.projectstatusmonitor.controllers;
 
-import gs.psm.projectstatusmonitor.models.AddProjectRequest;
+import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ public class ProjectController {
     private ProjectUseCase projectUseCase;
 
     @PostMapping(value = "/add", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity addProject(@Validated @RequestBody AddProjectRequest request) {
+    public ResponseEntity addProject(@Validated @RequestBody Project request) {
         projectUseCase.addProject(request);
         return new ResponseEntity(HttpStatus.CREATED);
     }
