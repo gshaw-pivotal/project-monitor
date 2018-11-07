@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
+import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -116,6 +117,18 @@ public class ProjectControllerTest {
         mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(projectCode)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withDuplicateJobCodes_returns400() throws Exception {
+        String projectCode = "proCode";
+
+        doThrow(new DuplicateJobCodeException()).when(projectUseCase).addProject(any());
+
+        mockMvc.perform(post("/project/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectWithStatusListContainingDuplicateJobCodesAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -295,6 +308,24 @@ public class ProjectControllerTest {
                             "\"jobCode\": \"a job code\"," +
                             "\"jobName\": \"a job name\"," +
                             "\"jobStatus\": \"WRONG\"" +
+                        "}" +
+                    "]" +
+                "}";
+    }
+
+    private String buildProjectWithStatusListContainingDuplicateJobCodesAsJson(String projectCode) {
+        return "{" +
+                    "\"projectCode\": \"" + projectCode + "\"," +
+                    "\"projectName\": \"projectName\"," +
+                    "\"jobStatusList\": [" +
+                        "{" +
+                            "\"jobCode\": \"code-1\"," +
+                            "\"jobName\": \"name-1\"," +
+                            "\"jobStatus\": \"RUNNING\"" +
+                        "},{" +
+                            "\"jobCode\": \"code-1\"," +
+                            "\"jobName\": \"name-2\"," +
+                            "\"jobStatus\": \"RUNNING\"" +
                         "}" +
                     "]" +
                 "}";

@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
+import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = ProjectNotFoundException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    void handleProjectnotFoundException() {}
+    void handleProjectNotFoundException() {}
+
+    @ExceptionHandler(value = DuplicateJobCodeException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    void handleDuplicateJobCodeException() {}
 
     @ExceptionHandler(value = DeleteProjectException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)

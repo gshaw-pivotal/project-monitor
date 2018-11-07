@@ -1,9 +1,12 @@
 package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
+import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
+import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
+import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +58,23 @@ public class ProjectUseCaseTest {
                 .build();
 
         when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
+
+        projectUseCase.addProject(project);
+    }
+
+    @Test(expected = DuplicateJobCodeException.class)
+    public void addProject_givenANewProject_withDuplicateJobCode_throwsDuplicateJobCodeException() {
+        List<ProjectJobStatus> jobStatusList = new ArrayList<>();
+
+        jobStatusList.add(createJobStatus("jobCode1", "job-name-1", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode1", "job-name-2", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode3", "job-name-3", JobStatus.PASSED));
+
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(jobStatusList)
+                .build();
 
         projectUseCase.addProject(project);
     }
@@ -161,7 +181,7 @@ public class ProjectUseCaseTest {
     }
 
     @Test(expected = ProjectNotFoundException.class)
-    public void updateProject_givenAProjectWithAProjectCodeThatDoesNotExist_thorwsProjectNotFoundException() {
+    public void updateProject_givenAProjectWithAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
@@ -176,6 +196,14 @@ public class ProjectUseCaseTest {
         return Project.builder()
                 .projectCode("code" + increment)
                 .projectName("name" + increment)
+                .build();
+    }
+
+    private ProjectJobStatus createJobStatus(String code, String name, JobStatus status) {
+        return ProjectJobStatus.builder()
+                .jobCode(code)
+                .jobName(name)
+                .jobStatus(status)
                 .build();
     }
 }
