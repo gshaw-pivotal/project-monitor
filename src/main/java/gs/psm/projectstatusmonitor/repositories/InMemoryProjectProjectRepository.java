@@ -45,4 +45,14 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
 
         throw new ProjectNotFoundException();
     }
+
+    @Override
+    public Project updateProject(Project updateProject) {
+        Project oldProject = projectRecords.replace(updateProject.getProjectCode(), updateProject);
+        if (oldProject != null) {
+            return updateProject;
+        }
+
+        throw new ProjectNotFoundException();
+    }
 }

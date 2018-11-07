@@ -210,6 +210,38 @@ public class ProjectControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
+    @Test
+    public void update_POST_givenAValidProjectThatAlreadyExists_returns200() throws Exception {
+        String projectCode = "proCode";
+
+        doNothing().when(projectUseCase).updateProject(any());
+
+        mockMvc.perform(post("/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectAsJson(projectCode)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void update_POST_givenAnInvalidProject_returns400() throws Exception {
+        mockMvc.perform(post("/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"projectName\": \"projectName\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void update_POST_givenAValidProjectThatDoesNotExist_returns400() throws Exception {
+        String projectCode = "proCode";
+
+        doThrow(new ProjectNotFoundException()).when(projectUseCase).updateProject(any());
+
+        mockMvc.perform(post("/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectAsJson(projectCode)))
+                .andExpect(status().isBadRequest());
+    }
+
     private String buildProjectAsJson(String projectCode) {
         return "{" +
                 "\"projectCode\": \"" + projectCode + "\"," +

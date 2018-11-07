@@ -146,6 +146,32 @@ public class ProjectUseCaseTest {
         projectUseCase.removeProject("codeNotFound");
     }
 
+    @Test
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_callsTheProjectRepository() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.updateProject(project)).thenReturn(project);
+
+        projectUseCase.updateProject(project);
+
+        verify(projectRepository, times(1)).updateProject(project);
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateProject_givenAProjectWithAProjectCodeThatDoesNotExist_thorwsProjectNotFoundException() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.updateProject(project)).thenThrow(new ProjectNotFoundException());
+
+        projectUseCase.updateProject(project);
+    }
+
     private Project createProject(int increment) {
         return Project.builder()
                 .projectCode("code" + increment)

@@ -13,4 +13,6 @@ public interface ProjectRepository {
     Project getProject(String projectCode);
 
     boolean removeProject(String projectCode);
+
+    Project updateProject(Project updateProject);
 }

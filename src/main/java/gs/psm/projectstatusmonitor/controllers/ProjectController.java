@@ -22,6 +22,12 @@ public class ProjectController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/update", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity updateProject(@Validated @RequestBody Project request) {
+        projectUseCase.updateProject(request);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @GetMapping(value = "/list", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity listProjects() {
         return new ResponseEntity(projectUseCase.listProjects(), HttpStatus.OK);

@@ -37,4 +37,8 @@ public class ProjectUseCase {
             throw new DeleteProjectException();
         }
     }
+
+    public void updateProject(Project project) {
+        projectRepository.updateProject(project);
+    }
 }

@@ -122,6 +122,31 @@ public class InMemoryProjectProjectRepositoryTest {
         repository.removeProject("codeNotFound");
     }
 
+    @Test
+    public void updateProject_givenAProject_withAProjectCodeThatExists_updatesTheProject() {
+        addProjectToRepository(1);
+
+        Project updatedProject = Project.builder()
+                .projectCode("code1")
+                .projectName("newName")
+                .build();
+
+        Project returnedProject = repository.updateProject(updatedProject);
+
+        assertThat(returnedProject.getProjectCode()).isEqualTo(updatedProject.getProjectCode());
+        assertThat(returnedProject.getProjectName()).isEqualTo(updatedProject.getProjectName());
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateProject_givenAProject_withAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        Project updatedProject = Project.builder()
+                .projectCode("code1")
+                .projectName("newName")
+                .build();
+
+        repository.updateProject(updatedProject);
+    }
+
     private void addProjectToRepository(int increment) {
         Project newProject = Project.builder()
                 .projectCode("code" + increment)
