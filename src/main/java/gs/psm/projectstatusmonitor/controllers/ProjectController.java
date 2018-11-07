@@ -16,19 +16,19 @@ public class ProjectController {
     @Autowired
     private ProjectUseCase projectUseCase;
 
-    @PostMapping(value = "/add", consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/project/add", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity addProject(@Validated @RequestBody Project request) {
         projectUseCase.addProject(request);
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/update", consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/project/update", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity updateProject(@Validated @RequestBody Project request) {
         projectUseCase.updateProject(request);
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @GetMapping(value = "/list", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/project/list", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity listProjects() {
         return new ResponseEntity(projectUseCase.listProjects(), HttpStatus.OK);
     }

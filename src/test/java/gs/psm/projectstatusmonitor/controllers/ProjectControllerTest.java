@@ -48,12 +48,12 @@ public class ProjectControllerTest {
 
     @Test
     public void add_POST_givenAIncorrectRequestBody_returns400() throws Exception {
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{incorrectly formatted json}"))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"key\": \"value\"}"))
                 .andExpect(status().isBadRequest());
@@ -61,7 +61,7 @@ public class ProjectControllerTest {
 
     @Test
     public void add_POST_givenAnEmptyRequestBody_returns400() throws Exception {
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -69,7 +69,7 @@ public class ProjectControllerTest {
 
     @Test
     public void add_POST_givenARequestBodyWithAnEmptyValue_returns400() throws Exception {
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"projectName\": \"projectName\"}"))
                 .andExpect(status().isBadRequest());
@@ -81,7 +81,7 @@ public class ProjectControllerTest {
 
         doNothing().when(projectUseCase).addProject(any());
 
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isCreated());
@@ -93,7 +93,7 @@ public class ProjectControllerTest {
 
         doNothing().when(projectUseCase).addProject(any());
 
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListAsJson(projectCode)))
                 .andExpect(status().isCreated());
@@ -103,7 +103,7 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withInvalidStatus_returns400() throws Exception {
         String projectCode = "proCode";
 
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
@@ -113,7 +113,7 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatAlreadyExists_return400() throws Exception {
         doThrow(new ProjectAlreadyExistsException()).when(projectUseCase).addProject(any());
 
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson("proCodeDuplicate")))
                 .andExpect(status().isBadRequest());
@@ -124,7 +124,7 @@ public class ProjectControllerTest {
         when(projectUseCase.listProjects()).thenReturn(Collections.emptyList());
 
         MvcResult response = mockMvc
-                .perform(get("/list"))
+                .perform(get("/project/list"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -142,7 +142,7 @@ public class ProjectControllerTest {
         when(projectUseCase.listProjects()).thenReturn(projectList);
 
         MvcResult response = mockMvc
-                .perform(get("/list"))
+                .perform(get("/project/list"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -216,7 +216,7 @@ public class ProjectControllerTest {
 
         doNothing().when(projectUseCase).updateProject(any());
 
-        mockMvc.perform(post("/update")
+        mockMvc.perform(post("/project/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isOk());
@@ -224,7 +224,7 @@ public class ProjectControllerTest {
 
     @Test
     public void update_POST_givenAnInvalidProject_returns400() throws Exception {
-        mockMvc.perform(post("/update")
+        mockMvc.perform(post("/project/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"projectName\": \"projectName\"}"))
                 .andExpect(status().isBadRequest());
@@ -236,7 +236,7 @@ public class ProjectControllerTest {
 
         doThrow(new ProjectNotFoundException()).when(projectUseCase).updateProject(any());
 
-        mockMvc.perform(post("/update")
+        mockMvc.perform(post("/project/update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
