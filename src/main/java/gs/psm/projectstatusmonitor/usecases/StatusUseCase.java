@@ -1,5 +1,6 @@
 package gs.psm.projectstatusmonitor.usecases;
 
+import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
@@ -16,6 +17,11 @@ public class StatusUseCase {
 
     public List<ProjectJobStatus> getJobStatus(String projectCode) {
         Project project = projectRepository.getProject(projectCode);
-        return project.getJobStatusList();
+
+        if (project != null) {
+            return project.getJobStatusList();
+        }
+
+        throw new ProjectNotFoundException();
     }
 }

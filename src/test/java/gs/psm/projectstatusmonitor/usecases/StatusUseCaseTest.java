@@ -78,7 +78,7 @@ public class StatusUseCaseTest {
     public void getJobStatus_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
         String projectCode = "code1";
 
-        when(projectRepository.getProject(projectCode)).thenThrow(new ProjectNotFoundException());
+        when(projectRepository.getProject(projectCode)).thenReturn(null);
 
         statusUseCase.getJobStatus(projectCode);
     }
