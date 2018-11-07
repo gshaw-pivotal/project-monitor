@@ -58,9 +58,9 @@ public class StatusControllerTest {
         String projectCode = "code1";
 
         List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
-        projectJobStatusList.add(createJobStatus("job1", JobStatus.RUNNING));
-        projectJobStatusList.add(createJobStatus("job2", JobStatus.PASSED));
-        projectJobStatusList.add(createJobStatus("job3", JobStatus.FAILED));
+        projectJobStatusList.add(createJobStatus("job-code-1", "job1", JobStatus.RUNNING));
+        projectJobStatusList.add(createJobStatus("job-code-2", "job2", JobStatus.PASSED));
+        projectJobStatusList.add(createJobStatus("job-code-3", "job3", JobStatus.FAILED));
 
         when(statusUseCase.getJobStatus(projectCode)).thenReturn(projectJobStatusList);
 
@@ -73,9 +73,9 @@ public class StatusControllerTest {
 
         assertThat(returnedJobStatus).isEqualTo(
                 "[" +
-                    "{\"jobName\":\"job1\",\"jobStatus\":\"RUNNING\"}," +
-                    "{\"jobName\":\"job2\",\"jobStatus\":\"PASSED\"}," +
-                    "{\"jobName\":\"job3\",\"jobStatus\":\"FAILED\"}" +
+                    "{\"jobCode\":\"job-code-1\",\"jobName\":\"job1\",\"jobStatus\":\"RUNNING\"}," +
+                    "{\"jobCode\":\"job-code-2\",\"jobName\":\"job2\",\"jobStatus\":\"PASSED\"}," +
+                    "{\"jobCode\":\"job-code-3\",\"jobName\":\"job3\",\"jobStatus\":\"FAILED\"}" +
                 "]"
         );
     }
@@ -90,8 +90,9 @@ public class StatusControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private ProjectJobStatus createJobStatus(String name, JobStatus status) {
+    private ProjectJobStatus createJobStatus(String code, String name, JobStatus status) {
         return ProjectJobStatus.builder()
+                .jobCode(code)
                 .jobName(name)
                 .jobStatus(status)
                 .build();

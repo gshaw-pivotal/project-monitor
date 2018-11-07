@@ -100,6 +100,16 @@ public class ProjectControllerTest {
     }
 
     @Test
+    public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withAMissingJobCode_returns400() throws Exception {
+        String projectCode = "proCode";
+
+        mockMvc.perform(post("/project/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectWithStatusListMissingJobCodeAsJson(projectCode)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withInvalidStatus_returns400() throws Exception {
         String projectCode = "proCode";
 
@@ -255,6 +265,20 @@ public class ProjectControllerTest {
                     "\"projectName\": \"projectName\"," +
                     "\"jobStatusList\": [" +
                         "{" +
+                            "\"jobCode\": \"a job code\"," +
+                            "\"jobName\": \"a job name\"," +
+                            "\"jobStatus\": \"RUNNING\"" +
+                        "}" +
+                    "]" +
+                "}";
+    }
+
+    private String buildProjectWithStatusListMissingJobCodeAsJson(String projectCode) {
+        return "{" +
+                    "\"projectCode\": \"" + projectCode + "\"," +
+                    "\"projectName\": \"projectName\"," +
+                    "\"jobStatusList\": [" +
+                        "{" +
                             "\"jobName\": \"a job name\"," +
                             "\"jobStatus\": \"RUNNING\"" +
                         "}" +
@@ -264,14 +288,15 @@ public class ProjectControllerTest {
 
     private String buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(String projectCode) {
         return "{" +
-                "\"projectCode\": \"" + projectCode + "\"," +
-                "\"projectName\": \"projectName\"," +
-                "\"jobStatusList\": [" +
-                "{" +
-                "\"jobName\": \"a job name\"," +
-                "\"jobStatus\": \"WRONG\"" +
-                "}" +
-                "]" +
+                    "\"projectCode\": \"" + projectCode + "\"," +
+                    "\"projectName\": \"projectName\"," +
+                    "\"jobStatusList\": [" +
+                        "{" +
+                            "\"jobCode\": \"a job code\"," +
+                            "\"jobName\": \"a job name\"," +
+                            "\"jobStatus\": \"WRONG\"" +
+                        "}" +
+                    "]" +
                 "}";
     }
 
