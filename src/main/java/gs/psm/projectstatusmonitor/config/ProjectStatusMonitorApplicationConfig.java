@@ -3,6 +3,7 @@ package gs.psm.projectstatusmonitor.config;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 import gs.psm.projectstatusmonitor.repositories.InMemoryProjectProjectRepository;
 import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
+import gs.psm.projectstatusmonitor.usecases.StatusUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,5 +19,12 @@ public class ProjectStatusMonitorApplicationConfig {
     public ProjectUseCase projectUseCase(
             ProjectRepository projectRepository) {
         return new ProjectUseCase(projectRepository);
+    }
+
+    @Bean
+    public StatusUseCase statusUseCase(
+            ProjectRepository projectRepository
+    ) {
+        return new StatusUseCase(projectRepository);
     }
 }
