@@ -3,6 +3,7 @@ package gs.psm.projectstatusmonitor.repositories;
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.Project;
+import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
 
 import java.util.ArrayList;
@@ -51,6 +52,18 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
         Project oldProject = projectRecords.replace(updateProject.getProjectCode(), updateProject);
         if (oldProject != null) {
             return updateProject;
+        }
+
+        throw new ProjectNotFoundException();
+    }
+
+    @Override
+    public Project updateProjectJobs(String projectCode, List<ProjectJobStatus> projectJobStatusList) {
+        Project project = projectRecords.get(projectCode);
+
+        if (project != null) {
+            project.setJobStatusList(projectJobStatusList);
+            return project;
         }
 
         throw new ProjectNotFoundException();

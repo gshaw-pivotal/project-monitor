@@ -2,11 +2,14 @@ package gs.psm.projectstatusmonitor.repositories;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
+import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
+import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -147,6 +150,57 @@ public class InMemoryProjectProjectRepositoryTest {
         repository.updateProject(updatedProject);
     }
 
+    @Test
+    public void updateProjectJobs_givenAValidProjectCodeThatExists_andAListOfProjectJobStatus_updatesTheJobsOfTheProject() {
+        String projectCode = "code1";
+
+        List<ProjectJobStatus> oldProjectJobStatusList = new ArrayList<>();
+        oldProjectJobStatusList.add(createJobStatus("old-code-1", "old-name-1", JobStatus.PASSED));
+        oldProjectJobStatusList.add(createJobStatus("old-code-2", "old-name-2", JobStatus.PASSED));
+        oldProjectJobStatusList.add(createJobStatus("old-code-3", "old-name-3", JobStatus.PASSED));
+
+        addProjectToRepository(1, oldProjectJobStatusList);
+
+        List<ProjectJobStatus> newProjectJobStatusList = new ArrayList<>();
+        newProjectJobStatusList.add(createJobStatus("new-code-1", "new-name-1", JobStatus.FAILED));
+        newProjectJobStatusList.add(createJobStatus("new-code-2", "new-name-2", JobStatus.FAILED));
+        newProjectJobStatusList.add(createJobStatus("new-code-3", "new-name-3", JobStatus.FAILED));
+
+        Project returnedProject = repository.updateProjectJobs(projectCode, newProjectJobStatusList);
+
+        assertThat(returnedProject.getJobStatusList().containsAll(newProjectJobStatusList));
+
+        assertThat(repository.getProject(projectCode).getJobStatusList().containsAll(newProjectJobStatusList));
+    }
+
+    @Test
+    public void updateProjectJobs_givenAValidProjectCodeThatExists_andAnEmptyListOfProjectJobStatus_updateTheJobsOfTheProjectToBeEmpty() {
+        String projectCode = "code1";
+
+        List<ProjectJobStatus> oldProjectJobStatusList = new ArrayList<>();
+        oldProjectJobStatusList.add(createJobStatus("old-code-1", "old-name-1", JobStatus.PASSED));
+        oldProjectJobStatusList.add(createJobStatus("old-code-2", "old-name-2", JobStatus.PASSED));
+        oldProjectJobStatusList.add(createJobStatus("old-code-3", "old-name-3", JobStatus.PASSED));
+
+        addProjectToRepository(1, oldProjectJobStatusList);
+
+        Project returnedProject = repository.updateProjectJobs(projectCode, Collections.emptyList());
+
+        assertThat(returnedProject.getJobStatusList().size()).isEqualTo(0);
+
+        assertThat(repository.getProject(projectCode).getJobStatusList().size()).isEqualTo(0);
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateProjectJobs_givenAProjectCodeThatDoesExists_throwsProjectNotFoundException() {
+        List<ProjectJobStatus> newProjectJobStatusList = new ArrayList<>();
+        newProjectJobStatusList.add(createJobStatus("new-code-1", "new-name-1", JobStatus.FAILED));
+        newProjectJobStatusList.add(createJobStatus("new-code-2", "new-name-2", JobStatus.FAILED));
+        newProjectJobStatusList.add(createJobStatus("new-code-3", "new-name-3", JobStatus.FAILED));
+
+        repository.updateProjectJobs("code-does-not-exist", newProjectJobStatusList);
+    }
+
     private void addProjectToRepository(int increment) {
         Project newProject = Project.builder()
                 .projectCode("code" + increment)
@@ -156,5 +210,25 @@ public class InMemoryProjectProjectRepositoryTest {
         repository.addProject(newProject);
 
         expectedProjectList.add(newProject);
+    }
+
+    private void addProjectToRepository(int increment, List<ProjectJobStatus> jobStatusList) {
+        Project newProject = Project.builder()
+                .projectCode("code" + increment)
+                .projectName("name" + increment)
+                .jobStatusList(jobStatusList)
+                .build();
+
+        repository.addProject(newProject);
+
+        expectedProjectList.add(newProject);
+    }
+
+    private ProjectJobStatus createJobStatus(String code, String name, JobStatus status) {
+        return ProjectJobStatus.builder()
+                .jobCode(code)
+                .jobName(name)
+                .jobStatus(status)
+                .build();
     }
 }

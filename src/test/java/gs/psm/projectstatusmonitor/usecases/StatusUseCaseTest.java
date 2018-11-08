@@ -1,5 +1,6 @@
 package gs.psm.projectstatusmonitor.usecases;
 
+import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StatusUseCaseTest {
@@ -37,9 +40,9 @@ public class StatusUseCaseTest {
         String projectCode = "code1";
 
         List<ProjectJobStatus> projectJobList = new ArrayList<>();
-        projectJobList.add(createProjectJobStatus("job1", JobStatus.PASSED));
-        projectJobList.add(createProjectJobStatus("job2", JobStatus.RUNNING));
-        projectJobList.add(createProjectJobStatus("job3", JobStatus.FAILED));
+        projectJobList.add(createProjectJobStatus("code1","job1", JobStatus.PASSED));
+        projectJobList.add(createProjectJobStatus("code2","job2", JobStatus.RUNNING));
+        projectJobList.add(createProjectJobStatus("code3","job3", JobStatus.FAILED));
 
         Project project = Project.builder()
                 .projectCode(projectCode)
@@ -83,8 +86,60 @@ public class StatusUseCaseTest {
         statusUseCase.getJobStatus(projectCode);
     }
 
-    private ProjectJobStatus createProjectJobStatus(String name, JobStatus status) {
+    @Test
+    public void updateJobStatusList_givenAProjectCode_andAValidProjectJobStatusList_callsTheRepository() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+        projectJobStatusList.add(createProjectJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-2", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+
+        verify(projectRepository, times(1)).updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    @Test
+    public void updateJobStatusList_givenAProjectCode_andAnEmptyProjectJobStatusList_callsTheRepository() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+
+        verify(projectRepository, times(1)).updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    @Test(expected = DuplicateJobCodeException.class)
+    public void updateJobStatusList_givenAProjectCodeThatExists_andAProjectStatusList_thatHasDuplicateJobCodes_throwsDuplicateJobCodeException() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+        projectJobStatusList.add(createProjectJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-1", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateJobStatusList_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+        projectJobStatusList.add(createProjectJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-2", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        when(projectRepository.updateProjectJobs(projectCode, projectJobStatusList)).thenThrow(new ProjectNotFoundException());
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    private ProjectJobStatus createProjectJobStatus(String code, String name, JobStatus status) {
         return ProjectJobStatus.builder()
+                .jobCode(code)
                 .jobName(name)
                 .jobStatus(status)
                 .build();
