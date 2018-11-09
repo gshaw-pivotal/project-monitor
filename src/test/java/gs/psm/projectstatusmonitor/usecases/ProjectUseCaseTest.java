@@ -26,6 +26,9 @@ public class ProjectUseCaseTest {
     @Mock
     private ProjectRepository projectRepository;
 
+    @Mock
+    private ProjectJobStatusHelper projectJobStatusHelper;
+
     @InjectMocks
     private ProjectUseCase projectUseCase;
 
@@ -33,11 +36,11 @@ public class ProjectUseCaseTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        projectUseCase = new ProjectUseCase(projectRepository);
+        projectUseCase = new ProjectUseCase(projectRepository, projectJobStatusHelper);
     }
 
     @Test
-    public void addProject_givenANewProject_callsTheProjectRepository() {
+    public void addProject_givenANewProject_withNoProjectJobStatusList_callsTheProjectRepository() {
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
@@ -50,6 +53,31 @@ public class ProjectUseCaseTest {
         verify(projectRepository, times(1)).addProject(project);
     }
 
+    @Test
+    public void addProject_givenANewProject_withNoProjectJobStatusList_doesNotCallTheJobStatusHelper() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        projectUseCase.addProject(project);
+
+        verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
+    }
+
+    @Test
+    public void addProject_givenANewProject_withAnEmptyProjectStatusList_doesNotCallTheJobStatusHelper() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(Collections.emptyList())
+                .build();
+
+        projectUseCase.addProject(project);
+
+        verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
+    }
+
     @Test(expected = ProjectAlreadyExistsException.class)
     public void addProject_givenADuplicateProject_throwsProjectAlreadyExistsException() {
         Project project = Project.builder()
@@ -60,6 +88,27 @@ public class ProjectUseCaseTest {
         when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
 
         projectUseCase.addProject(project);
+    }
+
+    @Test
+    public void addProject_givenANewProject_withAListOfProjectJobStatus_withNoDuplicateJobCodes_callsTheJobStatusHelper() {
+        List<ProjectJobStatus> jobStatusList = new ArrayList<>();
+
+        jobStatusList.add(createJobStatus("jobCode1", "job-name-1", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode2", "job-name-2", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode3", "job-name-3", JobStatus.PASSED));
+
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(jobStatusList)
+                .build();
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(jobStatusList)).thenReturn(true);
+
+        projectUseCase.addProject(project);
+
+        verify(projectJobStatusHelper, times(1)).containsNoDuplicateJobCodes(jobStatusList);
     }
 
     @Test(expected = DuplicateJobCodeException.class)
@@ -75,6 +124,8 @@ public class ProjectUseCaseTest {
                 .projectName("projectName")
                 .jobStatusList(jobStatusList)
                 .build();
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(jobStatusList)).thenReturn(false);
 
         projectUseCase.addProject(project);
     }
@@ -167,7 +218,7 @@ public class ProjectUseCaseTest {
     }
 
     @Test
-    public void updateProject_givenAProjectWithAProjectCodeThatExists_callsTheProjectRepository() {
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_withNoProjectJobStatusList_callsTheProjectRepository() {
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
@@ -180,6 +231,31 @@ public class ProjectUseCaseTest {
         verify(projectRepository, times(1)).updateProject(project);
     }
 
+    @Test
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_withNoProjectJobStatusList_doesNotCallTheJobStatusHelper() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        projectUseCase.updateProject(project);
+
+        verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
+    }
+
+    @Test
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_withAnEmptyProjectJobStatusList_doesNotCallTheJobStatusHelper() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(Collections.emptyList())
+                .build();
+
+        projectUseCase.updateProject(project);
+
+        verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
+    }
+
     @Test(expected = ProjectNotFoundException.class)
     public void updateProject_givenAProjectWithAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
         Project project = Project.builder()
@@ -188,6 +264,46 @@ public class ProjectUseCaseTest {
                 .build();
 
         when(projectRepository.updateProject(project)).thenThrow(new ProjectNotFoundException());
+
+        projectUseCase.updateProject(project);
+    }
+
+    @Test
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_andAListOfProjectJobStatus_withNoDuplicateJobCodes_callsTheProjectRepository() {
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+
+        projectJobStatusList.add(createJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createJobStatus("code-2", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(projectJobStatusList)
+                .build();
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(true);
+
+        projectUseCase.updateProject(project);
+
+        verify(projectRepository, times(1)).updateProject(project);
+    }
+
+    @Test(expected = DuplicateJobCodeException.class)
+    public void updateProject_givenAProjectWithAProjectCodeThatExists_andAListOfProjectJobStatus_withDuplicateJobCodes_throwsDuplicateJobCodeException() {
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+
+        projectJobStatusList.add(createJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createJobStatus("code-1", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(projectJobStatusList)
+                .build();
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(false);
 
         projectUseCase.updateProject(project);
     }

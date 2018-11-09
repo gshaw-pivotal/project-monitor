@@ -15,17 +15,22 @@ public class ProjectUseCase {
 
     private ProjectRepository projectRepository;
 
-    public ProjectUseCase(ProjectRepository projectRepository) {
+    private ProjectJobStatusHelper projectJobStatusHelper;
+
+    public ProjectUseCase(
+            ProjectRepository projectRepository,
+            ProjectJobStatusHelper projectJobStatusHelper
+    ) {
         this.projectRepository = projectRepository;
+        this.projectJobStatusHelper = projectJobStatusHelper;
     }
 
     public void addProject(Project project) {
 
         List<ProjectJobStatus> jobs = project.getJobStatusList();
 
-        if (jobs != null) {
-            Set<String> uniqueJobCodes = getUniqueJobCodes(jobs);
-            if (uniqueJobCodes.size() != jobs.size()) {
+        if (jobs != null && jobs.size() > 0) {
+            if (!projectJobStatusHelper.containsNoDuplicateJobCodes(jobs)) {
                 throw new DuplicateJobCodeException();
             }
         }
@@ -53,13 +58,15 @@ public class ProjectUseCase {
     }
 
     public void updateProject(Project project) {
+
+        List<ProjectJobStatus> jobs = project.getJobStatusList();
+
+        if (jobs != null && jobs.size() > 0) {
+            if (!projectJobStatusHelper.containsNoDuplicateJobCodes(jobs)) {
+                throw new DuplicateJobCodeException();
+            }
+        }
+
         projectRepository.updateProject(project);
-    }
-
-    private Set<String> getUniqueJobCodes(List<ProjectJobStatus> jobs) {
-        Set<String> uniqueJobCodes = new HashSet<>();
-
-        jobs.stream().forEach(job -> uniqueJobCodes.add(job.getJobCode()));
-        return uniqueJobCodes;
     }
 }

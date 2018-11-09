@@ -16,14 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class StatusUseCaseTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private ProjectJobStatusHelper projectJobStatusHelper;
 
     @InjectMocks
     private StatusUseCase statusUseCase;
@@ -32,7 +33,7 @@ public class StatusUseCaseTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        statusUseCase = new StatusUseCase(projectRepository);
+        statusUseCase = new StatusUseCase(projectRepository, projectJobStatusHelper);
     }
 
     @Test
@@ -87,6 +88,22 @@ public class StatusUseCaseTest {
     }
 
     @Test
+    public void updateJobStatusList_givenAProjectCode_andAValidProjectJobStatusList_callsTheJobStatusHelper() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+        projectJobStatusList.add(createProjectJobStatus("code-1", "name-1", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-2", "name-2", JobStatus.PASSED));
+        projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(true);
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+
+        verify(projectJobStatusHelper, times(1)).containsNoDuplicateJobCodes(projectJobStatusList);
+    }
+
+    @Test
     public void updateJobStatusList_givenAProjectCode_andAValidProjectJobStatusList_callsTheRepository() {
         String projectCode = "projectCode";
 
@@ -95,9 +112,22 @@ public class StatusUseCaseTest {
         projectJobStatusList.add(createProjectJobStatus("code-2", "name-2", JobStatus.PASSED));
         projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
 
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(true);
+
         statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
 
         verify(projectRepository, times(1)).updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    @Test
+    public void updateJobStatusList_givenAProjectCode_andAnEmptyProjectJobStatusList_doesNotCallTheJobStatusHelper() {
+        String projectCode = "projectCode";
+
+        List<ProjectJobStatus> projectJobStatusList = new ArrayList<>();
+
+        statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+
+        verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
     }
 
     @Test
@@ -120,6 +150,8 @@ public class StatusUseCaseTest {
         projectJobStatusList.add(createProjectJobStatus("code-1", "name-2", JobStatus.PASSED));
         projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
 
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(false);
+
         statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
     }
 
@@ -132,6 +164,7 @@ public class StatusUseCaseTest {
         projectJobStatusList.add(createProjectJobStatus("code-2", "name-2", JobStatus.PASSED));
         projectJobStatusList.add(createProjectJobStatus("code-3", "name-3", JobStatus.PASSED));
 
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(true);
         when(projectRepository.updateProjectJobs(projectCode, projectJobStatusList)).thenThrow(new ProjectNotFoundException());
 
         statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);

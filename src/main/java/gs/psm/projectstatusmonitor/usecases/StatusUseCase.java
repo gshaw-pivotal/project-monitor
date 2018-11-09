@@ -14,8 +14,14 @@ public class StatusUseCase {
 
     private ProjectRepository projectRepository;
 
-    public StatusUseCase(ProjectRepository projectRepository) {
+    private ProjectJobStatusHelper projectJobStatusHelper;
+
+    public StatusUseCase(
+            ProjectRepository projectRepository,
+            ProjectJobStatusHelper projectJobStatusHelper
+    ) {
         this.projectRepository = projectRepository;
+        this.projectJobStatusHelper = projectJobStatusHelper;
     }
 
     public List<ProjectJobStatus> getJobStatus(String projectCode) {
@@ -31,19 +37,11 @@ public class StatusUseCase {
     public void updateProjectJobs(String projectCode, List<ProjectJobStatus> projectJobStatusList) {
 
         if (projectJobStatusList.size() > 0) {
-            Set<String> uniqueJobCodes = getUniqueJobCodes(projectJobStatusList);
-            if (uniqueJobCodes.size() != projectJobStatusList.size()) {
+            if (!projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)) {
                 throw new DuplicateJobCodeException();
             }
         }
 
         projectRepository.updateProjectJobs(projectCode, projectJobStatusList);
-    }
-
-    private Set<String> getUniqueJobCodes(List<ProjectJobStatus> jobs) {
-        Set<String> uniqueJobCodes = new HashSet<>();
-
-        jobs.stream().forEach(job -> uniqueJobCodes.add(job.getJobCode()));
-        return uniqueJobCodes;
     }
 }
