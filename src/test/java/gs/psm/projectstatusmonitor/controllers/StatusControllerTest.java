@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.controllers;
 
 import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectJobStatusNotFoundException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
@@ -159,6 +160,56 @@ public class StatusControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void statusUpdateJob_POST_givenAProjectCode_andAJobStatus_whereJobCodeIsMissing_returns400() throws Exception {
+        String projectCode = "projectCode";
+
+        mockMvc.perform(post("/status/updateJob/" + projectCode)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectJobStatusWithMissingJobCodeAsJson()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void statusUpdateJob_POST_givenAProjectCode_andAJobStatus_whereJobStatusIsInvalid_returns400() throws Exception {
+        String projectCode = "projectCode";
+
+        mockMvc.perform(post("/status/updateJob/" + projectCode)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectJobStatusWithInvalidJobStatusAsJson()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void statusUpdateJob_POST_givenAProjectCode_andAValidProjectJobStatusInTheRequestBody_callsTheStatusUseCase() throws Exception {
+        String projectCode = "projectCode";
+
+        ProjectJobStatus projectJobStatus = ProjectJobStatus.builder()
+                .jobCode("jobCode")
+                .jobName("jobName")
+                .jobStatus(JobStatus.PASSED)
+                .build();
+
+        mockMvc.perform(post("/status/updateJob/" + projectCode)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectJobStatusAsJson()))
+                .andExpect(status().isOk());
+
+        verify(statusUseCase, times(1)).updateJob(projectCode, projectJobStatus);
+    }
+
+    @Test
+    public void statusUpdateJob_POST_givenAProjectJobStatus_withAnInvalidJobCode_returns400() throws Exception {
+        String projectCode = "projectCode";
+
+        doThrow(new ProjectJobStatusNotFoundException()).when(statusUseCase).updateJob(any(), any());
+
+        mockMvc.perform(post("/status/updateJob/" + projectCode)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectJobStatusAsJson()))
+                .andExpect(status().isBadRequest());
+    }
+
     private ProjectJobStatus createJobStatus(String code, String name, JobStatus status) {
         return ProjectJobStatus.builder()
                 .jobCode(code)
@@ -259,6 +310,29 @@ public class StatusControllerTest {
                             "\"jobStatus\": \"PASSED\"" +
                         "}" +
                     "]" +
+                "}";
+    }
+
+    private String buildProjectJobStatusWithMissingJobCodeAsJson() {
+        return "{" +
+                    "\"jobName\": \"jobName\"," +
+                    "\"jobStatus\": \"PASSED\"" +
+                "}";
+    }
+
+    private String buildProjectJobStatusWithInvalidJobStatusAsJson() {
+        return "{" +
+                    "\"jobCode\": \"jobCode\"," +
+                    "\"jobName\": \"jobName\"," +
+                    "\"jobStatus\": \"WRONG\"" +
+                "}";
+    }
+
+    private String buildProjectJobStatusAsJson() {
+        return "{" +
+                    "\"jobCode\": \"jobCode\"," +
+                    "\"jobName\": \"jobName\"," +
+                    "\"jobStatus\": \"PASSED\"" +
                 "}";
     }
 }

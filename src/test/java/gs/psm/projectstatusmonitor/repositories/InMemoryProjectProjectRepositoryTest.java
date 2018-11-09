@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.repositories;
 
 import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectJobStatusNotFoundException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -199,6 +201,69 @@ public class InMemoryProjectProjectRepositoryTest {
         newProjectJobStatusList.add(createJobStatus("new-code-3", "new-name-3", JobStatus.FAILED));
 
         repository.updateProjectJobs("code-does-not-exist", newProjectJobStatusList);
+    }
+
+    @Test
+    public void updateJob_givenAProjectCodeThatExists_andAJobCodeThatExistsForThatProjectCode_updatesThatSingleJob() {
+        List<ProjectJobStatus> initialProjectJobStatusList = new ArrayList<>();
+
+        initialProjectJobStatusList.add(createJobStatus("code-1", "name-1", JobStatus.PASSED));
+        initialProjectJobStatusList.add(createJobStatus("code-2", "name-2", JobStatus.PASSED));
+        initialProjectJobStatusList.add(createJobStatus("code-3", "name-3", JobStatus.PASSED));
+
+        addProjectToRepository(1, initialProjectJobStatusList);
+
+        ProjectJobStatus updatedProjectJobStatus = createJobStatus("code-1", "new-name-1", JobStatus.FAILED);
+
+        List<ProjectJobStatus> expectedProjectJobStatusList = Arrays.asList(
+                updatedProjectJobStatus,
+                createJobStatus("code-2", "name-2", JobStatus.PASSED),
+                createJobStatus("code-3", "name-3", JobStatus.PASSED)
+        );
+
+        Project updatedProject = repository.updateJob("code1", "code-1", updatedProjectJobStatus);
+
+        assertThat(updatedProject.getJobStatusList().containsAll(expectedProjectJobStatusList)).isTrue();
+
+        assertThat(repository.getProject("code1").getJobStatusList().containsAll(expectedProjectJobStatusList)).isTrue();
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateJob_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        ProjectJobStatus updatedProjectJobStatus = createJobStatus("code-1", "new-name-1", JobStatus.FAILED);
+
+        repository.updateJob("code1", "code-1", updatedProjectJobStatus);
+    }
+
+    @Test(expected = ProjectJobStatusNotFoundException.class)
+    public void updateJob_givenAProjectCodeThatExists_andTheProjectHasNoProjectJobStatusList_throwsProjectJobStatusNotFoundException() {
+        addProjectToRepository(1);
+
+        ProjectJobStatus updatedProjectJobStatus = createJobStatus("code-1", "new-name-1", JobStatus.FAILED);
+
+        repository.updateJob("code1", "code-1", updatedProjectJobStatus);
+    }
+
+    @Test(expected = ProjectJobStatusNotFoundException.class)
+    public void updateJob_givenAProjectCodeThatExists_andTheProjectHasAnEmptyProjectJobStatusList_throwsProjectJobStatusNotFoundException() {
+        addProjectToRepository(1, Collections.emptyList());
+
+        ProjectJobStatus updatedProjectJobStatus = createJobStatus("code-1", "new-name-1", JobStatus.FAILED);
+
+        repository.updateJob("code1", "code-1", updatedProjectJobStatus);
+    }
+
+    @Test(expected = ProjectJobStatusNotFoundException.class)
+    public void updateJob_givenAProjectCodeThatExists_andHasAProjectJobStatusList_andAJobCodeThatDoesNotExist_throwsProjectJobStatusNotFoundException() {
+        List<ProjectJobStatus> initialProjectJobStatusList = new ArrayList<>();
+
+        initialProjectJobStatusList.add(createJobStatus("code-1", "name-1", JobStatus.PASSED));
+
+        addProjectToRepository(1, initialProjectJobStatusList);
+
+        ProjectJobStatus updatedProjectJobStatus = createJobStatus("code-5", "new-name-1", JobStatus.FAILED);
+
+        repository.updateJob("code1", "code-5", updatedProjectJobStatus);
     }
 
     private void addProjectToRepository(int increment) {

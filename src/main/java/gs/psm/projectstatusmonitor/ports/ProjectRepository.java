@@ -18,4 +18,6 @@ public interface ProjectRepository {
     Project updateProject(Project updateProject);
 
     Project updateProjectJobs(String projectCode, List<ProjectJobStatus> projectJobStatusList);
+
+    Project updateJob(String projectCode, String jobCode, ProjectJobStatus projectJobStatus);
 }

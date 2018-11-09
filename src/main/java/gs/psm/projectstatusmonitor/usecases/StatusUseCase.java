@@ -44,4 +44,8 @@ public class StatusUseCase {
 
         projectRepository.updateProjectJobs(projectCode, projectJobStatusList);
     }
+
+    public void updateJob(String projectCode, ProjectJobStatus projectJobStatus) {
+        projectRepository.updateJob(projectCode, projectJobStatus.getJobCode(), projectJobStatus);
+    }
 }

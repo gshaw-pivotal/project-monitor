@@ -1,6 +1,7 @@
 package gs.psm.projectstatusmonitor.usecases;
 
 import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
+import gs.psm.projectstatusmonitor.exceptions.ProjectJobStatusNotFoundException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
 import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
@@ -168,6 +169,42 @@ public class StatusUseCaseTest {
         when(projectRepository.updateProjectJobs(projectCode, projectJobStatusList)).thenThrow(new ProjectNotFoundException());
 
         statusUseCase.updateProjectJobs(projectCode, projectJobStatusList);
+    }
+
+    @Test
+    public void updateJob_callsTheRepository() {
+        String projectCode = "projectCode";
+        String jobCode = "code-1";
+
+        ProjectJobStatus projectJobStatus = createProjectJobStatus(jobCode, "name-1", JobStatus.PASSED);
+
+        statusUseCase.updateJob(projectCode, projectJobStatus);
+
+        verify(projectRepository, times(1)).updateJob(projectCode, jobCode, projectJobStatus);
+    }
+
+    @Test(expected = ProjectNotFoundException.class)
+    public void updateJob_whenRepositoryThrowsProjectNotFoundException_throwsProjectNotFoundException() {
+        String projectCode = "projectCode";
+        String jobCode = "code-1";
+
+        ProjectJobStatus projectJobStatus = createProjectJobStatus(jobCode, "name-1", JobStatus.PASSED);
+
+        when(projectRepository.updateJob(projectCode, jobCode, projectJobStatus)).thenThrow(new ProjectNotFoundException());
+
+        statusUseCase.updateJob(projectCode, projectJobStatus);
+    }
+
+    @Test(expected = ProjectJobStatusNotFoundException.class)
+    public void updateJob_whenRepositoryThrowsProjectJobStatusNotFoundException_throwsProjectJobStatusNotFoundException() {
+        String projectCode = "projectCode";
+        String jobCode = "code-1";
+
+        ProjectJobStatus projectJobStatus = createProjectJobStatus(jobCode, "name-1", JobStatus.PASSED);
+
+        when(projectRepository.updateJob(projectCode, jobCode, projectJobStatus)).thenThrow(new ProjectJobStatusNotFoundException());
+
+        statusUseCase.updateJob(projectCode, projectJobStatus);
     }
 
     private ProjectJobStatus createProjectJobStatus(String code, String name, JobStatus status) {

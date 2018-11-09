@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -30,6 +28,15 @@ public class StatusController {
             @Validated @RequestBody ProjectJobStatusList projectJobStatusList
     ) {
         statusUseCase.updateProjectJobs(projectCode, projectJobStatusList.getProjectJobStatusList());
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/status/updateJob/{projectCode}", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity updateProjectJobStatus(
+            @PathVariable String projectCode,
+            @Validated @RequestBody ProjectJobStatus projectJobStatus
+            ) {
+        statusUseCase.updateJob(projectCode, projectJobStatus);
         return new ResponseEntity(HttpStatus.OK);
     }
 }
