@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -17,16 +18,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${auth.username}")
-    private String username;
+    private String[] usernameList;
 
     @Value("${auth.password}")
-    private String password;
+    private String[] passwordList;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser(username).password(passwordEncoder().encode(password))
-                .roles("USER");
+        System.out.println("Number of users: " + usernameList.length);
+        InMemoryUserDetailsManagerConfigurer configurer = auth.inMemoryAuthentication();
+        for (int index = 0; index < usernameList.length; index++) {
+            configurer.withUser(usernameList[index]).password(passwordEncoder().encode(passwordList[index])).roles("USER");
+        }
     }
 
     @Override
