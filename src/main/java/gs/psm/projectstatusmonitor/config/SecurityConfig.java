@@ -25,7 +25,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        System.out.println("Number of users: " + usernameList.length);
         InMemoryUserDetailsManagerConfigurer configurer = auth.inMemoryAuthentication();
         for (int index = 0; index < usernameList.length; index++) {
             configurer.withUser(usernameList[index]).password(passwordEncoder().encode(passwordList[index])).roles("USER");
