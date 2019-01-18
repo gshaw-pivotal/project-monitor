@@ -256,6 +256,59 @@ public abstract class ProjectRepositoryTest {
         repository.updateJob("code1", "code-5", updatedProjectJobStatus);
     }
 
+    @Test(expected = ProjectNotFoundException.class)
+    public void associateUserWithProject_whenProjectCodeDoesNotExist_throwsProjectNotFoundException() {
+        repository.associateUserWithProject("username", "codeNotFound");
+    }
+
+    @Test
+    public void associateUserWithProject_whenProjectCodeExists_andUserIsNotAssociatedWithAnyProject_addsEntryToAssociateUserAndProject() {
+        addProjectToRepository(1);
+
+        repository.associateUserWithProject("username", "code1");
+
+        List<String> projectCodes = repository.getUserAssociatedProjectCodes("username");
+
+        assertThat(projectCodes.size()).isEqualTo(1);
+        assertThat(projectCodes.get(0)).isEqualTo("code1");
+    }
+
+    @Test
+    public void associateUserWithProject_whenUserAlreadyAssociated_entryUnchanged() {
+        addProjectToRepository(1);
+
+        repository.associateUserWithProject("username", "code1");
+        repository.associateUserWithProject("username", "code1");
+
+        List<String> projectCodes = repository.getUserAssociatedProjectCodes("username");
+
+        assertThat(projectCodes.size()).isEqualTo(1);
+        assertThat(projectCodes.get(0)).isEqualTo("code1");
+    }
+
+    @Test
+    public void associateUserWithProject_whenUserAlreadyAssociatedWithAnotherProject_updatesEntryToAssociateUserWithAllTheirProjects() {
+        addProjectToRepository(1);
+        addProjectToRepository(2);
+
+        repository.associateUserWithProject("username", "code1");
+        repository.associateUserWithProject("username", "code2");
+
+        List<String> projectCodes = repository.getUserAssociatedProjectCodes("username");
+
+        assertThat(projectCodes.size()).isEqualTo(2);
+        assertThat(projectCodes.containsAll(Arrays.asList("code1", "code2"))).isTrue();
+    }
+
+    @Test
+    public void getUserAssociatedProjectCodes_whenUserHasNotBeAssociatedWithAnyProjects_returnsEmptyList() {
+        addProjectToRepository(1);
+
+        List<String> projectCodes = repository.getUserAssociatedProjectCodes("username");
+
+        assertThat(projectCodes.size()).isEqualTo(0);
+    }
+
     private void addProjectToRepository(int increment) {
         Project newProject = Project.builder()
                 .projectCode("code" + increment)

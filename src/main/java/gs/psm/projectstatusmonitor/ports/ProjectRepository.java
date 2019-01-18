@@ -20,4 +20,8 @@ public interface ProjectRepository {
     Project updateProjectJobs(String projectCode, List<ProjectJobStatus> projectJobStatusList);
 
     Project updateJob(String projectCode, String jobCode, ProjectJobStatus projectJobStatus);
+
+    void associateUserWithProject(String userName, String projectCode);
+
+    List<String> getUserAssociatedProjectCodes(String username);
 }

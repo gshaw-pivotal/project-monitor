@@ -14,6 +14,8 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
 
     private Map<String, Project> projectRecords = new HashMap<>();
 
+    private Map<String, List<String>> userAssociatedProjects = new HashMap<>();
+
     @Override
     public Project addProject(Project addProject) {
 
@@ -97,5 +99,34 @@ public class InMemoryProjectProjectRepository implements ProjectRepository {
         }
 
         throw new ProjectNotFoundException();
+    }
+
+    @Override
+    public void associateUserWithProject(String userName, String projectCode) {
+        if (projectRecords.containsKey(projectCode)) {
+            List<String> projectCodes = getUserAssociatedProjectCodes(userName);
+
+            if (projectCodes == null || projectCodes.isEmpty()) {
+                userAssociatedProjects.put(userName, Collections.singletonList(projectCode));
+            } else {
+                if (projectCodes.indexOf(projectCode) == -1) {
+                    projectCodes = new ArrayList<>(projectCodes);
+                    projectCodes.add(projectCode);
+                    userAssociatedProjects.replace(userName, projectCodes);
+                }
+            }
+            return;
+        }
+
+        throw new ProjectNotFoundException();
+    }
+
+    @Override
+    public List<String> getUserAssociatedProjectCodes(String username) {
+        if (userAssociatedProjects.containsKey(username)) {
+            return userAssociatedProjects.get(username);
+        }
+
+        return Collections.emptyList();
     }
 }
