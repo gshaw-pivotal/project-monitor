@@ -23,9 +23,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ProjectControllerTest {
@@ -50,6 +49,7 @@ public class ProjectControllerTest {
     @Test
     public void add_POST_givenAIncorrectRequestBody_returns400() throws Exception {
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{incorrectly formatted json}"))
                 .andExpect(status().isBadRequest());
@@ -63,6 +63,7 @@ public class ProjectControllerTest {
     @Test
     public void add_POST_givenAnEmptyRequestBody_returns400() throws Exception {
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -71,6 +72,7 @@ public class ProjectControllerTest {
     @Test
     public void add_POST_givenARequestBodyWithAnEmptyValue_returns400() throws Exception {
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"projectName\": \"projectName\"}"))
                 .andExpect(status().isBadRequest());
@@ -80,24 +82,30 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsNoJobStatusList_returns201() throws Exception {
         String projectCode = "proCode";
 
-        doNothing().when(projectUseCase).addProject(any(), anyString());
+        doNothing().when(projectUseCase).addProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isCreated());
+
+        verify(projectUseCase, times(1)).addProject(any(), eq("username"));
     }
 
     @Test
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_returns201() throws Exception {
         String projectCode = "proCode";
 
-        doNothing().when(projectUseCase).addProject(any(), anyString());
+        doNothing().when(projectUseCase).addProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListAsJson(projectCode)))
                 .andExpect(status().isCreated());
+
+        verify(projectUseCase, times(1)).addProject(any(), eq("username"));
     }
 
     @Test
@@ -105,9 +113,12 @@ public class ProjectControllerTest {
         String projectCode = "proCode";
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListMissingJobCodeAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
+
+        verify(projectUseCase, never()).addProject(any(), anyString());
     }
 
     @Test
@@ -115,18 +126,22 @@ public class ProjectControllerTest {
         String projectCode = "proCode";
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListContainingAnInvalidJobStatusAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
+
+        verify(projectUseCase, never()).addProject(any(), anyString());
     }
 
     @Test
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withDuplicateJobCodes_returns400() throws Exception {
         String projectCode = "proCode";
 
-        doThrow(new DuplicateJobCodeException()).when(projectUseCase).addProject(any(), anyString());
+        doThrow(new DuplicateJobCodeException()).when(projectUseCase).addProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectWithStatusListContainingDuplicateJobCodesAsJson(projectCode)))
                 .andExpect(status().isBadRequest());
@@ -134,9 +149,10 @@ public class ProjectControllerTest {
 
     @Test
     public void add_POST_forAProjectThatAlreadyExists_return400() throws Exception {
-        doThrow(new ProjectAlreadyExistsException()).when(projectUseCase).addProject(any(), anyString());
+        doThrow(new ProjectAlreadyExistsException()).when(projectUseCase).addProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/add")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson("proCodeDuplicate")))
                 .andExpect(status().isBadRequest());

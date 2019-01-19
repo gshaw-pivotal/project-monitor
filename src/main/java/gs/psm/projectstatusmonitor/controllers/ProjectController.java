@@ -5,6 +5,7 @@ import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Base64Utils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +18,9 @@ public class ProjectController {
     private ProjectUseCase projectUseCase;
 
     @PostMapping(value = "/project/add", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity addProject(@Validated @RequestBody Project request) {
-        projectUseCase.addProject(request, "");
+    public ResponseEntity addProject(@Validated @RequestBody Project request,
+                                     @RequestHeader(value="Authorization") String authHeader) {
+        projectUseCase.addProject(request, decodeUsername(authHeader));
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
@@ -42,5 +44,10 @@ public class ProjectController {
     public ResponseEntity removeProject(@PathVariable String projectCode) {
         projectUseCase.removeProject(projectCode);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
+
+
+    private String decodeUsername(String authHeader) {
+        return new String(Base64Utils.decode(authHeader.split(" ")[1].getBytes())).split(":")[0];
     }
 }
