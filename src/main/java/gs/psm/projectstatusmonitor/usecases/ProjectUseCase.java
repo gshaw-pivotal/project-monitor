@@ -25,7 +25,7 @@ public class ProjectUseCase {
         this.projectJobStatusHelper = projectJobStatusHelper;
     }
 
-    public void addProject(Project project) {
+    public void addProject(Project project, String username) {
 
         List<ProjectJobStatus> jobs = project.getJobStatusList();
 
@@ -36,6 +36,7 @@ public class ProjectUseCase {
         }
 
         projectRepository.addProject(project);
+        projectRepository.associateUserWithProject(username, project.getProjectCode());
     }
 
     public List<Project> listProjects() {

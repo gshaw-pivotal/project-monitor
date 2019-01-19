@@ -48,7 +48,7 @@ public class ProjectUseCaseTest {
 
         when(projectRepository.addProject(project)).thenReturn(project);
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
 
         verify(projectRepository, times(1)).addProject(project);
     }
@@ -60,7 +60,7 @@ public class ProjectUseCaseTest {
                 .projectName("projectName")
                 .build();
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
 
         verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
     }
@@ -73,7 +73,7 @@ public class ProjectUseCaseTest {
                 .jobStatusList(Collections.emptyList())
                 .build();
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
 
         verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
     }
@@ -87,7 +87,7 @@ public class ProjectUseCaseTest {
 
         when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
     }
 
     @Test
@@ -106,7 +106,7 @@ public class ProjectUseCaseTest {
 
         when(projectJobStatusHelper.containsNoDuplicateJobCodes(jobStatusList)).thenReturn(true);
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
 
         verify(projectJobStatusHelper, times(1)).containsNoDuplicateJobCodes(jobStatusList);
     }
@@ -127,7 +127,65 @@ public class ProjectUseCaseTest {
 
         when(projectJobStatusHelper.containsNoDuplicateJobCodes(jobStatusList)).thenReturn(false);
 
-        projectUseCase.addProject(project);
+        projectUseCase.addProject(project, "username");
+    }
+
+    @Test
+    public void addProject_givenANewProjectThatIsValid_callsTheProjectRepositoryToAssociateUserWithProject() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.addProject(project)).thenReturn(project);
+
+        projectUseCase.addProject(project, "username");
+
+        verify(projectRepository, times(1)).addProject(project);
+        verify(projectRepository, times(1)).associateUserWithProject("username", "projectCode");
+    }
+
+    @Test
+    public void addProject_givenThatAProjectAlreadyExistsExceptionIsThrown_doesNotCallTheRepositoryToAssociateUserWithProject() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.addProject(project)).thenThrow(new ProjectAlreadyExistsException());
+
+        try {
+            projectUseCase.addProject(project, "username");
+        } catch (ProjectAlreadyExistsException e) {
+
+        } finally {
+            verify(projectRepository, never()).associateUserWithProject(anyString(), anyString());
+        }
+    }
+
+    @Test
+    public void addProject_givenThatDuplicateJobCodeExceptionIsThrown_doesNotCallTheRepositoryToAssociateUserWithProject() {
+        List<ProjectJobStatus> jobStatusList = new ArrayList<>();
+
+        jobStatusList.add(createJobStatus("jobCode1", "job-name-1", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode1", "job-name-2", JobStatus.PASSED));
+        jobStatusList.add(createJobStatus("jobCode3", "job-name-3", JobStatus.PASSED));
+
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .jobStatusList(jobStatusList)
+                .build();
+
+        when(projectJobStatusHelper.containsNoDuplicateJobCodes(jobStatusList)).thenReturn(false);
+
+        try {
+            projectUseCase.addProject(project, "username");
+        } catch (DuplicateJobCodeException e) {
+
+        } finally {
+            verify(projectRepository, never()).associateUserWithProject(anyString(), anyString());
+        }
     }
 
     @Test

@@ -80,7 +80,7 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsNoJobStatusList_returns201() throws Exception {
         String projectCode = "proCode";
 
-        doNothing().when(projectUseCase).addProject(any());
+        doNothing().when(projectUseCase).addProject(any(), anyString());
 
         mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +92,7 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_returns201() throws Exception {
         String projectCode = "proCode";
 
-        doNothing().when(projectUseCase).addProject(any());
+        doNothing().when(projectUseCase).addProject(any(), anyString());
 
         mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -124,7 +124,7 @@ public class ProjectControllerTest {
     public void add_POST_forAProjectThatDoesNotAlreadyExist_andContainsAJobStatusList_withDuplicateJobCodes_returns400() throws Exception {
         String projectCode = "proCode";
 
-        doThrow(new DuplicateJobCodeException()).when(projectUseCase).addProject(any());
+        doThrow(new DuplicateJobCodeException()).when(projectUseCase).addProject(any(), anyString());
 
         mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -134,7 +134,7 @@ public class ProjectControllerTest {
 
     @Test
     public void add_POST_forAProjectThatAlreadyExists_return400() throws Exception {
-        doThrow(new ProjectAlreadyExistsException()).when(projectUseCase).addProject(any());
+        doThrow(new ProjectAlreadyExistsException()).when(projectUseCase).addProject(any(), anyString());
 
         mockMvc.perform(post("/project/add")
                 .contentType(MediaType.APPLICATION_JSON)

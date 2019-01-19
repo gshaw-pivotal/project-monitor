@@ -18,7 +18,7 @@ public class ProjectController {
 
     @PostMapping(value = "/project/add", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity addProject(@Validated @RequestBody Project request) {
-        projectUseCase.addProject(request);
+        projectUseCase.addProject(request, "");
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
