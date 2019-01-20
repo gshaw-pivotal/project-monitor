@@ -25,6 +25,10 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     void handleProjectJobStatusNotFoundException() {}
 
+    @ExceptionHandler(value = UserActionNotAllowedException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    void handleUserActionNotAllowedException() {}
+
     @ExceptionHandler(value = DeleteProjectException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     void handleDeleteProjectException() {}

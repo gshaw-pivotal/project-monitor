@@ -1,9 +1,6 @@
 package gs.psm.projectstatusmonitor.usecases;
 
-import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
-import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
-import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
-import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
+import gs.psm.projectstatusmonitor.exceptions.*;
 import gs.psm.projectstatusmonitor.models.JobStatus;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
@@ -276,15 +273,42 @@ public class ProjectUseCaseTest {
     }
 
     @Test
+    public void updateProject_callsTheRepositoryToGetTheProjectsAssociatedWithTheUser() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
+
+        projectUseCase.updateProject(project, "username");
+
+        verify(projectRepository, times(1)).getUserAssociatedProjectCodes("username");
+    }
+
+    @Test(expected = UserActionNotAllowedException.class)
+    public void updateProject_givenAValidProjectToUpdate_andTheUserIsNotAssociatedWithTheProject_throwsUserActionNotAllowedException() {
+        Project project = Project.builder()
+                .projectCode("projectCode")
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.emptyList());
+
+        projectUseCase.updateProject(project, "username");
+    }
+
+    @Test
     public void updateProject_givenAProjectWithAProjectCodeThatExists_withNoProjectJobStatusList_callsTheProjectRepository() {
         Project project = Project.builder()
                 .projectCode("projectCode")
                 .projectName("projectName")
                 .build();
 
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
         when(projectRepository.updateProject(project)).thenReturn(project);
 
-        projectUseCase.updateProject(project);
+        projectUseCase.updateProject(project, "username");
 
         verify(projectRepository, times(1)).updateProject(project);
     }
@@ -296,7 +320,9 @@ public class ProjectUseCaseTest {
                 .projectName("projectName")
                 .build();
 
-        projectUseCase.updateProject(project);
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
+
+        projectUseCase.updateProject(project, "username");
 
         verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
     }
@@ -309,7 +335,9 @@ public class ProjectUseCaseTest {
                 .jobStatusList(Collections.emptyList())
                 .build();
 
-        projectUseCase.updateProject(project);
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
+
+        projectUseCase.updateProject(project, "username");
 
         verify(projectJobStatusHelper, never()).containsNoDuplicateJobCodes(any());
     }
@@ -321,9 +349,10 @@ public class ProjectUseCaseTest {
                 .projectName("projectName")
                 .build();
 
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
         when(projectRepository.updateProject(project)).thenThrow(new ProjectNotFoundException());
 
-        projectUseCase.updateProject(project);
+        projectUseCase.updateProject(project, "username");
     }
 
     @Test
@@ -340,9 +369,10 @@ public class ProjectUseCaseTest {
                 .jobStatusList(projectJobStatusList)
                 .build();
 
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
         when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(true);
 
-        projectUseCase.updateProject(project);
+        projectUseCase.updateProject(project, "username");
 
         verify(projectRepository, times(1)).updateProject(project);
     }
@@ -361,9 +391,10 @@ public class ProjectUseCaseTest {
                 .jobStatusList(projectJobStatusList)
                 .build();
 
+        when(projectRepository.getUserAssociatedProjectCodes("username")).thenReturn(Collections.singletonList("projectCode"));
         when(projectJobStatusHelper.containsNoDuplicateJobCodes(projectJobStatusList)).thenReturn(false);
 
-        projectUseCase.updateProject(project);
+        projectUseCase.updateProject(project, "username");
     }
 
     private Project createProject(int increment) {

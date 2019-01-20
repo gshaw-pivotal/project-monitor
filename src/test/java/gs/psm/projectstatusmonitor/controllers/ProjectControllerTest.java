@@ -1,9 +1,6 @@
 package gs.psm.projectstatusmonitor.controllers;
 
-import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
-import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
-import gs.psm.projectstatusmonitor.exceptions.ProjectAlreadyExistsException;
-import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
+import gs.psm.projectstatusmonitor.exceptions.*;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.usecases.ProjectUseCase;
 import org.junit.Before;
@@ -253,9 +250,10 @@ public class ProjectControllerTest {
     public void update_POST_givenAValidProjectThatAlreadyExists_returns200() throws Exception {
         String projectCode = "proCode";
 
-        doNothing().when(projectUseCase).updateProject(any());
+        doNothing().when(projectUseCase).updateProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/update")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isOk());
@@ -264,6 +262,7 @@ public class ProjectControllerTest {
     @Test
     public void update_POST_givenAnInvalidProject_returns400() throws Exception {
         mockMvc.perform(post("/project/update")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"projectName\": \"projectName\"}"))
                 .andExpect(status().isBadRequest());
@@ -273,9 +272,23 @@ public class ProjectControllerTest {
     public void update_POST_givenAValidProjectThatDoesNotExist_returns400() throws Exception {
         String projectCode = "proCode";
 
-        doThrow(new ProjectNotFoundException()).when(projectUseCase).updateProject(any());
+        doThrow(new ProjectNotFoundException()).when(projectUseCase).updateProject(any(), eq("username"));
 
         mockMvc.perform(post("/project/update")
+                .with(httpBasic("username", "password"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildProjectAsJson(projectCode)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void update_POST_givenUserIsNotAssociatedWithProject_returns400() throws Exception {
+        String projectCode = "proCode";
+
+        doThrow(new UserActionNotAllowedException()).when(projectUseCase).updateProject(any(), eq("username"));
+
+        mockMvc.perform(post("/project/update")
+                .with(httpBasic("username", "password"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildProjectAsJson(projectCode)))
                 .andExpect(status().isBadRequest());

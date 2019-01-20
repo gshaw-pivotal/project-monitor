@@ -25,8 +25,9 @@ public class ProjectController {
     }
 
     @PostMapping(value = "/project/update", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity updateProject(@Validated @RequestBody Project request) {
-        projectUseCase.updateProject(request);
+    public ResponseEntity updateProject(@Validated @RequestBody Project request,
+                                        @RequestHeader(value="Authorization") String authHeader) {
+        projectUseCase.updateProject(request, decodeUsername(authHeader));
         return new ResponseEntity(HttpStatus.OK);
     }
 

@@ -3,6 +3,7 @@ package gs.psm.projectstatusmonitor.usecases;
 import gs.psm.projectstatusmonitor.exceptions.DeleteProjectException;
 import gs.psm.projectstatusmonitor.exceptions.DuplicateJobCodeException;
 import gs.psm.projectstatusmonitor.exceptions.ProjectNotFoundException;
+import gs.psm.projectstatusmonitor.exceptions.UserActionNotAllowedException;
 import gs.psm.projectstatusmonitor.models.Project;
 import gs.psm.projectstatusmonitor.models.ProjectJobStatus;
 import gs.psm.projectstatusmonitor.ports.ProjectRepository;
@@ -58,16 +59,24 @@ public class ProjectUseCase {
         }
     }
 
-    public void updateProject(Project project) {
+    public void updateProject(Project project, String username) {
 
-        List<ProjectJobStatus> jobs = project.getJobStatusList();
+        List<String> associatedProjectCodes = projectRepository.getUserAssociatedProjectCodes(username);
 
-        if (jobs != null && jobs.size() > 0) {
-            if (!projectJobStatusHelper.containsNoDuplicateJobCodes(jobs)) {
-                throw new DuplicateJobCodeException();
+        if (associatedProjectCodes.contains(project.getProjectCode())) {
+
+            List<ProjectJobStatus> jobs = project.getJobStatusList();
+
+            if (jobs != null && jobs.size() > 0) {
+                if (!projectJobStatusHelper.containsNoDuplicateJobCodes(jobs)) {
+                    throw new DuplicateJobCodeException();
+                }
             }
+
+            projectRepository.updateProject(project);
+            return;
         }
 
-        projectRepository.updateProject(project);
+        throw new UserActionNotAllowedException();
     }
 }
