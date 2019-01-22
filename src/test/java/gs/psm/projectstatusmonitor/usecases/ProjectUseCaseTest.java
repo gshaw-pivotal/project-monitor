@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -246,12 +247,38 @@ public class ProjectUseCaseTest {
     }
 
     @Test
-    public void removeProject_givenAProjectCodeThatExists_callsTheProjectRepository() {
+    public void removeProject_callsTheRepositoryToGetTheProjectsAssociatedWithTheUser() {
         String projectCode = "codeToDelete";
+        String username = "username";
 
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
         when(projectRepository.removeProject(projectCode)).thenReturn(true);
 
-        projectUseCase.removeProject(projectCode);
+
+        projectUseCase.removeProject(projectCode, username);
+
+        verify(projectRepository, times(1)).getUserAssociatedProjectCodes(username);
+    }
+
+    @Test(expected = UserActionNotAllowedException.class)
+    public void removeProject_givenAProjectCodeThatExists_andTheUserIsNotAssociatedWithTheProject_throwsUserActionNotAllowedException() {
+        String projectCode = "codeToDelete";
+        String username = "username";
+
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Collections.emptyList());
+
+        projectUseCase.removeProject(projectCode, username);
+    }
+
+    @Test
+    public void removeProject_givenAProjectCodeThatExists_callsTheProjectRepository() {
+        String projectCode = "codeToDelete";
+        String username = "username";
+
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
+        when(projectRepository.removeProject(projectCode)).thenReturn(true);
+
+        projectUseCase.removeProject(projectCode, username);
 
         verify(projectRepository, times(1)).removeProject(projectCode);
     }
@@ -259,17 +286,23 @@ public class ProjectUseCaseTest {
     @Test(expected = DeleteProjectException.class)
     public void removeProject_givenTheRepositoryReturnsFalse_throwsDeleteProjectException() {
         String projectCode = "codeToDelete";
+        String username = "username";
 
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
         when(projectRepository.removeProject(projectCode)).thenReturn(false);
 
-        projectUseCase.removeProject(projectCode);
+        projectUseCase.removeProject(projectCode, username);
     }
 
     @Test(expected = ProjectNotFoundException.class)
     public void removeProject_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
-        when(projectRepository.removeProject("codeNotFound")).thenThrow(new ProjectNotFoundException());
+        String projectCode = "codeNotFound";
+        String username = "username";
 
-        projectUseCase.removeProject("codeNotFound");
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
+        when(projectRepository.removeProject(projectCode)).thenThrow(new ProjectNotFoundException());
+
+        projectUseCase.removeProject(projectCode, username);
     }
 
     @Test

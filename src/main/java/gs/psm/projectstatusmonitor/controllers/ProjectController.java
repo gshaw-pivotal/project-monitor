@@ -42,11 +42,11 @@ public class ProjectController {
     }
 
     @DeleteMapping(value = "/project/{projectCode}")
-    public ResponseEntity removeProject(@PathVariable String projectCode) {
-        projectUseCase.removeProject(projectCode);
+    public ResponseEntity removeProject(@PathVariable String projectCode,
+                                        @RequestHeader(value="Authorization") String authHeader) {
+        projectUseCase.removeProject(projectCode, decodeUsername(authHeader));
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
-
 
     private String decodeUsername(String authHeader) {
         return new String(Base64Utils.decode(authHeader.split(" ")[1].getBytes())).split(":")[0];

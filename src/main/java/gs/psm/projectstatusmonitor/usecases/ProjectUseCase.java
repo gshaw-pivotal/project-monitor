@@ -53,17 +53,21 @@ public class ProjectUseCase {
         throw new ProjectNotFoundException();
     }
 
-    public void removeProject(String projectCodeToDelete) {
-        if (!projectRepository.removeProject(projectCodeToDelete)) {
-            throw new DeleteProjectException();
+    public void removeProject(String projectCodeToDelete, String username) {
+        if (isUserAssociatedWithProjectCode(username, projectCodeToDelete)) {
+
+            if (!projectRepository.removeProject(projectCodeToDelete)) {
+                throw new DeleteProjectException();
+            }
+
+            return;
         }
+
+        throw new UserActionNotAllowedException();
     }
 
     public void updateProject(Project project, String username) {
-
-        List<String> associatedProjectCodes = projectRepository.getUserAssociatedProjectCodes(username);
-
-        if (associatedProjectCodes.contains(project.getProjectCode())) {
+        if (isUserAssociatedWithProjectCode(username, project.getProjectCode())) {
 
             List<ProjectJobStatus> jobs = project.getJobStatusList();
 
@@ -78,5 +82,11 @@ public class ProjectUseCase {
         }
 
         throw new UserActionNotAllowedException();
+    }
+
+    private boolean isUserAssociatedWithProjectCode(String username, String projectCode) {
+        List<String> associatedProjectCodes = projectRepository.getUserAssociatedProjectCodes(username);
+
+        return associatedProjectCodes.contains(projectCode);
     }
 }

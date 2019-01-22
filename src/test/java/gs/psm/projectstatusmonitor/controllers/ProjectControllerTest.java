@@ -220,9 +220,10 @@ public class ProjectControllerTest {
     public void project_DELETE_whenTheProjectCodeExists_returns204() throws Exception {
         String projectCode = "projectCode";
 
-        doNothing().when(projectUseCase).removeProject(projectCode);
+        doNothing().when(projectUseCase).removeProject(projectCode, "username");
 
-        mockMvc.perform(delete("/project/" + projectCode))
+        mockMvc.perform(delete("/project/" + projectCode)
+                .with(httpBasic("username", "password")))
                 .andExpect(status().isNoContent());
     }
 
@@ -230,9 +231,10 @@ public class ProjectControllerTest {
     public void project_DELETE_whenTheProjectCodeDoesNotExists_returns400() throws Exception {
         String projectCode = "projectCode";
 
-        doThrow(new ProjectNotFoundException()).when(projectUseCase).removeProject(projectCode);
+        doThrow(new ProjectNotFoundException()).when(projectUseCase).removeProject(projectCode, "username");
 
-        mockMvc.perform(delete("/project/" + projectCode))
+        mockMvc.perform(delete("/project/" + projectCode)
+                .with(httpBasic("username", "password")))
                 .andExpect(status().isBadRequest());
     }
 
@@ -240,10 +242,22 @@ public class ProjectControllerTest {
     public void project_DELETE_whenTheRemoveOperationFails_returns500() throws Exception {
         String projectCode = "projectCode";
 
-        doThrow(new DeleteProjectException()).when(projectUseCase).removeProject(projectCode);
+        doThrow(new DeleteProjectException()).when(projectUseCase).removeProject(projectCode, "username");
 
-        mockMvc.perform(delete("/project/" + projectCode))
+        mockMvc.perform(delete("/project/" + projectCode)
+                .with(httpBasic("username", "password")))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    public void project_DELETE_whenUserIsNotAssociatedWithProject_returns400() throws Exception {
+        String projectCode = "projectCode";
+
+        doThrow(new UserActionNotAllowedException()).when(projectUseCase).removeProject(projectCode, "username");
+
+        mockMvc.perform(delete("/project/" + projectCode)
+                .with(httpBasic("username", "password")))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
