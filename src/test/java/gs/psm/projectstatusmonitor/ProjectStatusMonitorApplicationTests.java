@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -42,6 +43,24 @@ public class ProjectStatusMonitorApplicationTests {
 		response = restTemplate
 				.withBasicAuth("test_username2", "test_password2")
 				.postForEntity("http://localhost:" + serverPort + "/project/update", project, Void.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	public void deleteProject_whenTheUserIsNotAssociatedWithTheProject_receives400Response() {
+		Project project = createProject(2);
+		ResponseEntity response;
+
+		response = restTemplate
+				.withBasicAuth("test_username", "test_password")
+				.postForEntity("http://localhost:" + serverPort + "/project/add", project, Void.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+		response = restTemplate
+				.withBasicAuth("test_username2", "test_password2")
+				.exchange("http://localhost:" + serverPort + "/project/" + project.getProjectCode(), HttpMethod.DELETE, null, Void.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
