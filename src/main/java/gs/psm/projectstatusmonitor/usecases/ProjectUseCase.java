@@ -44,13 +44,17 @@ public class ProjectUseCase {
         return projectRepository.listProjects();
     }
 
-    public Project getProject(String projectCode) {
-        Project foundProject = projectRepository.getProject(projectCode);
-        if (foundProject != null) {
-            return foundProject;
+    public Project getProject(String projectCode,String username) {
+        if (isUserAssociatedWithProjectCode(username, projectCode)) {
+            Project foundProject = projectRepository.getProject(projectCode);
+            if (foundProject != null) {
+                return foundProject;
+            }
+
+            throw new ProjectNotFoundException();
         }
 
-        throw new ProjectNotFoundException();
+        throw new UserActionNotAllowedException();
     }
 
     public void removeProject(String projectCodeToDelete, String username) {

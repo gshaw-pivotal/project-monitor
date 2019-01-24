@@ -37,8 +37,9 @@ public class ProjectController {
     }
 
     @GetMapping(value = "/project/{projectCode}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getProject(@PathVariable String projectCode) {
-        return new ResponseEntity(projectUseCase.getProject(projectCode), HttpStatus.OK);
+    public ResponseEntity getProject(@PathVariable String projectCode,
+                                     @RequestHeader(value="Authorization") String authHeader) {
+        return new ResponseEntity(projectUseCase.getProject(projectCode, decodeUsername(authHeader)), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/project/{projectCode}")

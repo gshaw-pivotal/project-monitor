@@ -65,6 +65,24 @@ public class ProjectStatusMonitorApplicationTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
+	@Test
+	public void getProject_whenTheUserIsNotAssociatedWithTheProject_receives400Response() {
+		Project project = createProject(3);
+		ResponseEntity response;
+
+		response = restTemplate
+				.withBasicAuth("test_username", "test_password")
+				.postForEntity("http://localhost:" + serverPort + "/project/add", project, Void.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+		response = restTemplate
+				.withBasicAuth("test_username2", "test_password2")
+				.getForEntity("http://localhost:" + serverPort + "/project/" + project.getProjectCode(), Project.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
 	private Project createProject(int increment) {
 		return Project.builder()
 				.projectCode("code" + increment)

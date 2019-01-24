@@ -197,10 +197,11 @@ public class ProjectControllerTest {
 
         Project expectedProject = createProject(1);
 
-        when(projectUseCase.getProject(projectCode)).thenReturn(expectedProject);
+        when(projectUseCase.getProject(projectCode, "username")).thenReturn(expectedProject);
 
         MvcResult response = mockMvc
-                .perform(get("/project/" + projectCode))
+                .perform(get("/project/" + projectCode)
+                .with(httpBasic("username", "password")))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -210,9 +211,23 @@ public class ProjectControllerTest {
 
     @Test
     public void project_GET_whenTheProjectCodeDoesNotExist_returns400() throws Exception {
-        when(projectUseCase.getProject("notFoundCode")).thenThrow(new ProjectNotFoundException());
+        when(projectUseCase.getProject("notFoundCode", "username")).thenThrow(new ProjectNotFoundException());
 
-        mockMvc.perform(get("/project/notFoundCode"))
+        mockMvc.perform(get("/project/notFoundCode")
+                .with(httpBasic("username", "password")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void project_GET_whenUserIsNotAssociatedWithProject_returns400() throws Exception {
+        String projectCode = "code";
+        String username = "username";
+
+        doThrow(new UserActionNotAllowedException()).when(projectUseCase).getProject(projectCode, username);
+
+        mockMvc
+                .perform(get("/project/" + projectCode)
+                        .with(httpBasic(username, "password")))
                 .andExpect(status().isBadRequest());
     }
 

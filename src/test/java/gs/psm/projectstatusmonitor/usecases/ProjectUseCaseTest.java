@@ -223,17 +223,47 @@ public class ProjectUseCaseTest {
     }
 
     @Test
-    public void getProject_givenAProjectCodeThatExists_returnsThatProject() {
-        String projectCode = "code";
+    public void getProject_callsTheRepositoryToGetTheProjectsAssociatedWithTheUser() {
+        String projectCode = "codeToDelete";
+        String username = "username";
 
         Project expectedProject = Project.builder()
                 .projectCode(projectCode)
                 .projectName("projectName")
                 .build();
 
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
         when(projectRepository.getProject(projectCode)).thenReturn(expectedProject);
 
-        Project returnedProject = projectUseCase.getProject(projectCode);
+        projectUseCase.getProject(projectCode, username);
+
+        verify(projectRepository, times(1)).getUserAssociatedProjectCodes(username);
+    }
+
+    @Test(expected = UserActionNotAllowedException.class)
+    public void getProject_givenAProjectCodeThatExists_andTheUserIsNotAssociatedWithTheProject_throwsUserActionNotAllowedException() {
+        String projectCode = "codeToDelete";
+        String username = "username";
+
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Collections.emptyList());
+
+        projectUseCase.getProject(projectCode, username);
+    }
+
+    @Test
+    public void getProject_givenAProjectCodeThatExists_returnsThatProject() {
+        String projectCode = "code";
+        String username = "username";
+
+        Project expectedProject = Project.builder()
+                .projectCode(projectCode)
+                .projectName("projectName")
+                .build();
+
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
+        when(projectRepository.getProject(projectCode)).thenReturn(expectedProject);
+
+        Project returnedProject = projectUseCase.getProject(projectCode ,"username");
 
         assertThat(returnedProject.getProjectCode()).isEqualTo(expectedProject.getProjectCode());
         assertThat(returnedProject.getProjectName()).isEqualTo(expectedProject.getProjectName());
@@ -241,9 +271,13 @@ public class ProjectUseCaseTest {
 
     @Test(expected = ProjectNotFoundException.class)
     public void getProject_givenAProjectCodeThatDoesNotExist_throwsProjectNotFoundException() {
+        String projectCode = "codeNotFound";
+        String username = "username";
+
+        when(projectRepository.getUserAssociatedProjectCodes(username)).thenReturn(Arrays.asList(projectCode));
         when(projectRepository.getProject(any())).thenReturn(null);
 
-        projectUseCase.getProject("codeNotFound");
+        projectUseCase.getProject("codeNotFound", "username");
     }
 
     @Test
